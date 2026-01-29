@@ -116,9 +116,6 @@ class AnimationPlayer:
         return dic, False
 
 if __name__ == '__main__':
-    import os
-
-    os.chdir(r'D:\Projects\DesktopLobby')
-    an = AnimationPlayer('UIAni_SC_Char_Shake_2')
-    dic = an.play_frame(0.2)
+    an = AnimationPlayer('examples/AnimationClip/UIAni_Emo_Sc_Dot.anim')
+    dic = an.play_frame(0.2, path='1')
     print(dic)
