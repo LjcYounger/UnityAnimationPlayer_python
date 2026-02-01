@@ -226,7 +226,11 @@ class AnimationTest:
         angle = 0
         if 'rotation' in frame_data:
             angle = frame_data['rotation']
-            # 如果是弧度转换为角度（假设rotation返回的是弧度）
+            # 如果是弧度转换为角度（假设返回的是弧度）
+            # angle = math.degrees(angle)
+        elif 'euler' in frame_data:
+            angle = frame_data['euler']
+            # 如果是弧度转换为角度（假设返回的是弧度）
             # angle = math.degrees(angle)
         
         # 应用变换（先缩放后旋转）
