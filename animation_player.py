@@ -21,7 +21,7 @@ class AnimationPlayer:
              nowtime,
              path='general',
              timeReverse=False,
-             Eunit='x',
+             Eunit='z',
              Runit='w',
              Punit=('x', 'y'),
              Preverse=(False, False),
@@ -116,6 +116,6 @@ class AnimationPlayer:
         return dic, False
 
 if __name__ == '__main__':
-    an = AnimationPlayer('examples/AnimationClip/UIAni_Emo_Sc_Dot.anim')
-    dic = an.play_frame(0.2, path='1')
+    an = AnimationPlayer('examples/AnimationClip/UIAni_SC_Char_Shake_3.anim')
+    dic = an.play_frame(0.2, path='general')
     print(dic)

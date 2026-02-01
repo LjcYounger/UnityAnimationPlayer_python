@@ -66,7 +66,8 @@ class AnimationDisplayWidget(QLabel):
         
         if 'rotation' in frame_data:
             self.rotation = frame_data['rotation']
-        
+        elif 'euler' in frame_data:
+            self.rotation = frame_data['euler']
         self.update_display()
     
     def update_display(self):

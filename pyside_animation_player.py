@@ -11,7 +11,7 @@ class PlayKwargs:
     """
     path: str = 'general'
     timeReverse: bool = False
-    Eunit: Literal['x', 'y', 'z', 'w'] = 'x'  # 使用 Literal 限制字符串的取值范围
+    Eunit: Literal['x', 'y', 'z'] = 'z'  # 使用 Literal 限制字符串的取值范围
     Runit: Literal['x', 'y', 'z', 'w'] = 'w'
     Punit: Tuple[Literal['x', 'y', 'z', 'w'], Literal['x', 'y', 'z', 'w']] = ('x', 'y')
     Preverse: Tuple[bool, bool] = (False, False)
