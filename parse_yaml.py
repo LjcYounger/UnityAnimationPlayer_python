@@ -6,7 +6,6 @@ class MixedSegment:
     def __init__(self, x_start, x_end, interpolator):
         self.x = np.array([x_start, x_end], dtype=float)
         self.x_interval = (x_start, x_end)
-        print(type(interpolator))
         self._interp = interpolator  # 可调用对象
     
     def __call__(self, x):
@@ -26,11 +25,9 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
 
     # === 解析斜率：将 'Infinity' / '-Infinity' 转为 np.inf / -np.inf ===
     def parse_slope(s):
-        print(s)
         if s == 'Infinity':
             return np.inf
         elif s == '-Infinity':
-            print("-Infinity")
             return -np.inf
         else:
             return float(s)
@@ -103,7 +100,6 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
             elif np.isinf(in_slope_k1):
                 use_constant = True
                 const_value = y0 if in_slope_k1 == np.inf else y1
-            print(out_slope_k, in_slope_k1, use_constant)
             if use_constant:
                 # 创建常量插值函数（向量化安全）
                 interpolator = lambda x, val=const_value: np.full_like(x, val, dtype=float)
