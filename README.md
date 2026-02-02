@@ -1,4 +1,4 @@
-# Unity Animation Preview for Python
+# Unity 2D Animation Player for Python
 
 These scripts allow you to play smooth 2D Unity animations in Python.
 
