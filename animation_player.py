@@ -116,6 +116,6 @@ class AnimationPlayer:
         return dic, False
 
 if __name__ == '__main__':
-    an = AnimationPlayer('examples/AnimationClip/UIAni_SC_Char_Shake_3.anim')
-    dic = an.play_frame(0.2, path='general')
+    an = AnimationPlayer('examples/AnimationClip/T.anim')
+    dic = an.play_frame(0.83, path='general')
     print(dic)

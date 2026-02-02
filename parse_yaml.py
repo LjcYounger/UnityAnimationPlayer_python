@@ -104,9 +104,12 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 # 创建常量插值函数（向量化安全）
                 interpolator = lambda x, val=const_value: np.full_like(x, val, dtype=float)
             else:
+                #PROBLEM
                 # 使用 Hermite：每个端点导数 = (in + out) / 2
-                slope0 = (sub_out[k] + sub_in[k]) / 2.0
-                slope1 = (sub_out[k+1] + sub_in[k+1]) / 2.0
+                slope0 = np.asarray((sub_out[k], sub_in[k]))
+                slope0 = np.mean(slope0[np.isfinite(slope0)])
+                slope1 = np.asarray((sub_out[k+1], sub_in[k+1]))
+                slope1 = np.mean(slope1[np.isfinite(slope1)])
 
                 # 🔒 安全兜底：如果斜率仍含 inf（理论上不该有），转常量
                 if not (np.isfinite(slope0) and np.isfinite(slope1)):
