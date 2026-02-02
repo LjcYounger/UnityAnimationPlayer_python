@@ -121,12 +121,14 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 # 创建常量插值函数（向量化安全）
                 interpolator = lambda x, val=const_value: np.full_like(x, val, dtype=float)
             else:
-                #PROBLEM
-                # 使用 Hermite：每个端点导数 = (in + out) / 2
-                slope0 = np.asarray((sub_out[k], sub_in[k]))
-                slope0 = np.mean(slope0[np.isfinite(slope0)])
-                slope1 = np.asarray((sub_out[k+1], sub_in[k+1]))
-                slope1 = np.mean(slope1[np.isfinite(slope1)])
+                # 根据 tangentMode 预留接口：将来可根据 tangentMode 值采用不同处理方式
+                if tangentMode[i] == 0 or tangentMode[i] == 1:
+                    # 将来可以在这里添加针对 tangentMode == 0 或 1 的特殊处理
+                    pass  # 目前暂时不做特殊处理，保持通用逻辑
+                
+                # 直接使用原来的斜率值，不再计算平均值
+                slope0 = sub_out[k]  # 直接使用 out_slope 作为起点斜率
+                slope1 = sub_in[k+1]  # 直接使用 in_slope 作为终点斜率
 
                 # 🔒 安全兜底：如果斜率仍含 inf（理论上不该有），转常量
                 if not (np.isfinite(slope0) and np.isfinite(slope1)):
