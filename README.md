@@ -10,3 +10,6 @@ These scripts allow you to play smooth 2D Unity animations in Python.
 ## Disadvantages
 
 - Does not support weightMode, even when attempting to calculate it in the code
+
+## Contrast
+![Contrast Image](contrast.jpg)
