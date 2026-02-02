@@ -35,27 +35,44 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
     in_sl_raw = np.array([parse_slope(s) for s in in_slopes])
     out_sl_raw = np.array([parse_slope(s) for s in out_slopes])
 
-    # === 加权处理（仅当 weightedMode 全为 0）===
-    if np.all(np.array(weightedMode, dtype=float) == 0.0):
-        in_weights = np.array(in_weights, dtype=float)
-        out_weights = np.array(out_weights, dtype=float)
+    # === 加权处理（根据 weightedMode 的值进行不同的处理）===
+    weightedMode = np.array(weightedMode, dtype=float)
+    in_weights = np.array(in_weights, dtype=float)
+    out_weights = np.array(out_weights, dtype=float)
 
-        # 转为 float 数组（inf 会保留为 np.inf）
-        in_sl = np.array(in_sl_raw, dtype=float)
-        out_sl = np.array(out_sl_raw, dtype=float)
+    # 转为 float 数组（inf 会保留为 np.inf）
+    in_sl = np.array(in_sl_raw, dtype=float)
+    out_sl = np.array(out_sl_raw, dtype=float)
 
+    # 对每个点根据其 weightedMode 值分别处理
+    for i in range(len(weightedMode)):
+        mode = int(weightedMode[i])
         # 创建有限值掩码
-        finite_in = np.isfinite(in_sl)
-        finite_out = np.isfinite(out_sl)
-
-        # 只对有限值应用 clip 和权重
-        in_sl[finite_in] = np.clip(in_sl[finite_in] * in_weights[finite_in], -1e8, 1e8)
-        out_sl[finite_out] = np.clip(out_sl[finite_out] * out_weights[finite_out], -1e8, 1e8)
-
-        # inf / -inf 保持不变（已自动保留）
-    else:
-        in_sl = np.array(in_sl_raw, dtype=float)
-        out_sl = np.array(out_sl_raw, dtype=float)
+        finite_in = np.isfinite(in_sl[i])
+        finite_out = np.isfinite(out_sl[i])
+        
+        if mode == 0:  # in_sl和out_sl均不乘以权重
+            # 仅对有限值进行clip，不乘权重
+            if finite_in:
+                in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
+            if finite_out:
+                out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
+        elif mode == 1:  # in_sl乘，out_sl不乘
+            if finite_in:
+                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)
+            if finite_out:
+                out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
+        elif mode == 2:  # in_sl和out_sl都乘
+            if finite_in:
+                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)
+            if finite_out:
+                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)
+        elif mode == 3:  # in_sl不乘，out_sl乘
+            if finite_in:
+                in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
+            if finite_out:
+                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)
+        # 如果weightedMode值不是0-3，则不做任何处理，保持原始值
 
     tangentMode = np.array(tangentMode, dtype=float)
 
