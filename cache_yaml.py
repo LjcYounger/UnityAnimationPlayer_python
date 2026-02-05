@@ -15,7 +15,7 @@ def _str_constructor(loader, node):
     return loader.construct_scalar(node)
 
 
-# 防止yaml把"y"解析成True
+# Prevent yaml from parsing "y" as True
 yaml.constructor.add_constructor('tag:yaml.org,2002:bool', _str_constructor)
 
 temp_folder_path = os.path.join(tempfile.gettempdir(), 'DesktopLobby')
@@ -23,11 +23,11 @@ os.makedirs(temp_folder_path, exist_ok=True)
 
 
 def _get_file_sha256(file_path):
-    """计算文件的SHA256哈希值"""
+    """Calculate the SHA256 hash of a file"""
     sha256_hash = hashlib.sha256()
     try:
         with open(file_path, "rb") as f:
-            # 逐块读取文件以避免大文件内存问题
+            # Read file in chunks to avoid memory issues with large files
             for chunk in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(chunk)
         return sha256_hash.hexdigest()
@@ -36,7 +36,7 @@ def _get_file_sha256(file_path):
 
 
 def _save_cache_metadata(json_path, sha256_hash):
-    """保存缓存元数据（SHA256哈希）"""
+    """Save cache metadata (SHA256 hash)"""
     metadata_path = json_path + '.metadata'
     try:
         with open(metadata_path, 'w') as f:
@@ -46,7 +46,7 @@ def _save_cache_metadata(json_path, sha256_hash):
 
 
 def _load_cache_metadata(json_path):
-    """加载缓存元数据"""
+    """Load cache metadata"""
     metadata_path = json_path + '.metadata'
     try:
         with open(metadata_path, 'r') as f:
@@ -56,48 +56,48 @@ def _load_cache_metadata(json_path):
 
 
 def load_yaml(path: str, cache=True):
-    """加载并缓存yaml，使用SHA256验证文件一致性"""
-    # 构建缓存json路径
+    """Load and cache yaml, using SHA256 to verify file consistency"""
+    # Build cache json path
     json_path = os.path.join(temp_folder_path, path.rsplit('.', 1)[0] + '.json')
 
-    # 计算源文件的SHA256
+    # Calculate SHA256 of source file
     source_sha256 = _get_file_sha256(path)
     if source_sha256 is None:
         raise FileNotFoundError(f"Source file not found: {path}")
 
     try:
-        # 检查缓存是否存在且有效
+        # Check if cache exists and is valid
         metadata = _load_cache_metadata(json_path)
 
         if (metadata and
                 metadata.get('sha256') == source_sha256 and
                 os.path.exists(json_path)):
 
-            # 缓存有效，直接读取
+            # Cache is valid, read directly
             with open(json_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             print(f"[DEBUG]Loaded cached data for: {path}")
             return data
         else:
-            # 缓存无效或不存在，重新生成
+            # Cache is invalid or doesn't exist, regenerate
             print(f"[WARNING]Cache invalid or missing, regenerating for: {path}")
             raise FileNotFoundError("Cache needs regeneration")
 
     except (FileNotFoundError, json.JSONDecodeError):
-        # 缓存文件不存在或损坏，重新生成
+        # Cache file doesn't exist or is corrupted, regenerate
         with open(path, 'r', encoding='utf-8') as y:
             data = yaml.load(y)
 
         if cache:
-            # 确保目录存在
+            # Ensure directory exists
             os.makedirs(os.path.dirname(json_path), exist_ok=True)
 
-            # 保存JSON缓存
+            # Save JSON cache
             with open(json_path, 'w', encoding='utf-8') as j:
                 json_data = json.dumps(data, ensure_ascii=False, indent=2)
                 j.write(json_data)
 
-            # 保存元数据（SHA256）
+            # Save metadata (SHA256)
             _save_cache_metadata(json_path, source_sha256)
             print(f"[DEBUG]Cached data regenerated for: {path}")
 
@@ -105,9 +105,9 @@ def load_yaml(path: str, cache=True):
 
 
 def clear_yaml_cache(path: str = None):
-    """清除YAML缓存文件"""
+    """Clear YAML cache files"""
     if path:
-        # 清除特定文件的缓存
+        # Clear cache for specific file
         json_path = os.path.join(temp_folder_path, path.rsplit('.', 1)[0] + '.json')
         metadata_path = json_path + '.metadata'
 
@@ -119,7 +119,7 @@ def clear_yaml_cache(path: str = None):
             except Exception as e:
                 print(f"[ERROR]Error removing cache {cache_path}: {e}")
     else:
-        # 清除所有缓存
+        # Clear all cache
         import shutil
         try:
             if os.path.exists(temp_folder_path):
@@ -131,7 +131,7 @@ def clear_yaml_cache(path: str = None):
 
 
 def get_cache_info(path: str):
-    """获取缓存信息"""
+    """Get cache information"""
     json_path = os.path.join(temp_folder_path, path.rsplit('.', 1)[0] + '.json')
     metadata = _load_cache_metadata(json_path)
     source_sha256 = _get_file_sha256(path)

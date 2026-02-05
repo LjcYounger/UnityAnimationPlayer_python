@@ -67,7 +67,7 @@ class AnimationPlayer:
             return {}, False
 
     def _get_seg_result(self, segments, t):
-        """二分法查找分段插值结果"""
+        """Binary search to find segmented interpolation result"""
         if not segments:
             return 0
 
@@ -82,7 +82,7 @@ class AnimationPlayer:
             else:
                 return seg(t)
 
-        return segments[-1](t)  # 边界情况
+        return segments[-1](t)  # Boundary case
 
     def return_default(self,
                    default_value = 0.0,

@@ -1,12 +1,12 @@
 from scipy.interpolate import CubicHermiteSpline, interp1d
 import numpy as np
 
-# ===== 新增：统一插值段类 =====
+# ===== New: Unified interpolation segment class =====
 class MixedSegment:
     def __init__(self, x_start, x_end, interpolator):
         self.x = np.array([x_start, x_end], dtype=float)
         self.x_interval = (x_start, x_end)
-        self._interp = interpolator  # 可调用对象
+        self._interp = interpolator  # Callable object
     
     def __call__(self, x):
         return self._interp(x)
@@ -15,7 +15,7 @@ class MixedSegment:
         a, b = self.x_interval
         return (x >= a) & (x <= b)
 
-# ===== 修改 piecewise_hermite 函数 =====
+# ===== Modified piecewise_hermite function =====
 def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out_weights, tangentMode, weightedMode):
     x_points = np.array(x_points, dtype=float)
     y_points = np.array(y_points, dtype=float)
@@ -23,7 +23,7 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
     if n < 2:
         return []
 
-    # === 解析斜率：将 'Infinity' / '-Infinity' 转为 np.inf / -np.inf ===
+    # === Parse slopes: convert 'Infinity' / '-Infinity' to np.inf / -np.inf ===
     def parse_slope(s):
         if s == 'Infinity':
             return np.inf
@@ -35,62 +35,62 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
     in_sl_raw = np.array([parse_slope(s) for s in in_slopes])
     out_sl_raw = np.array([parse_slope(s) for s in out_slopes])
 
-    # === 加权处理（根据 weightedMode 的值进行不同的处理）===
+    # === Weighted processing (different handling based on weightedMode values) ===
     weightedMode = np.array(weightedMode, dtype=float)
     in_weights = np.array(in_weights, dtype=float)
     out_weights = np.array(out_weights, dtype=float)
 
-    # 转为 float 数组（inf 会保留为 np.inf）
+    # Convert to float array (inf will remain as np.inf)
     in_sl = np.array(in_sl_raw, dtype=float)
     out_sl = np.array(out_sl_raw, dtype=float)
 
-    # 对每个点根据其 weightedMode 值分别处理
+    # Process each point according to its weightedMode value
     for i in range(len(weightedMode)):
         mode = int(weightedMode[i])
-        # 创建有限值掩码
+        # Create finite value mask
         finite_in = np.isfinite(in_sl[i])
         finite_out = np.isfinite(out_sl[i])
         
-        if mode == 0:  # in_sl和out_sl均不乘以权重
-            # 仅对有限值进行clip，不乘权重
+        if mode == 0:  # Neither in_sl nor out_sl multiplied by weights
+            # Only clip finite values, don't multiply by weights
             if finite_in:
                 in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
             if finite_out:
                 out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
-        elif mode == 1:  # in_sl乘，out_sl不乘
+        elif mode == 1:  # in_sl multiplied, out_sl not multiplied
             if finite_in:
                 in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)
             if finite_out:
                 out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
-        elif mode == 2:  # in_sl和out_sl都乘
+        elif mode == 2:  # Both in_sl and out_sl multiplied
             if finite_in:
                 in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)
             if finite_out:
                 out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)
-        elif mode == 3:  # in_sl不乘，out_sl乘
+        elif mode == 3:  # in_sl not multiplied, out_sl multiplied
             if finite_in:
                 in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
             if finite_out:
                 out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)
-        # 如果weightedMode值不是0-3，则不做任何处理，保持原始值
+        # If weightedMode value is not 0-3, do no processing, keep original values
 
     tangentMode = np.array(tangentMode, dtype=float)
 
     segments = []
 
-    # === 按 tangentMode != 1 分段（断点）===
+    # === Segment by tangentMode != 1 (breakpoints) ===
     break_indices = np.where(tangentMode != 1.0)[0]
     indices = [0] + list(break_indices) + [n - 1]
     indices = sorted(set(indices))
 
     for seg_start_idx in range(len(indices) - 1):
         i0 = indices[seg_start_idx]
-        i1 = indices[seg_start_idx + 1]  # 连续段：[i0, i1]（包含）
+        i1 = indices[seg_start_idx + 1]  # Continuous segment: [i0, i1] (inclusive)
 
         if i1 <= i0:
             continue
 
-        # 提取子段数据
+        # Extract sub-segment data
         sub_x = x_points[i0:i1+1]
         sub_y = y_points[i0:i1+1]
         sub_in = in_sl[i0:i1+1]
@@ -100,17 +100,17 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
         if num_intervals <= 0:
             continue
 
-        # === 预处理每一段 [k, k+1] 是否为常量 ===
+        # === Preprocess whether each segment [k, k+1] is constant ===
         for k in range(num_intervals):
             x0, x1 = sub_x[k], sub_x[k+1]
             y0, y1 = sub_y[k], sub_y[k+1]
-            out_slope_k = sub_out[k]      # 控制 [x_k, x_{k+1}]
-            in_slope_k1 = sub_in[k+1]     # 也控制 [x_k, x_{k+1}]
+            out_slope_k = sub_out[k]      # Controls [x_k, x_{k+1}]
+            in_slope_k1 = sub_in[k+1]     # Also controls [x_k, x_{k+1}]
 
             use_constant = False
             const_value = None
 
-            # 🔥 优先检查 outSlope[k] 和 inSlope[k+1] 是否为 inf
+            # 🔥 Prioritize checking if outSlope[k] and inSlope[k+1] are inf
             if np.isinf(out_slope_k):
                 use_constant = True
                 const_value = y0 if out_slope_k == np.inf else y1
@@ -118,19 +118,19 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 use_constant = True
                 const_value = y0 if in_slope_k1 == np.inf else y1
             if use_constant:
-                # 创建常量插值函数（向量化安全）
+                # Create constant interpolation function (vectorization safe)
                 interpolator = lambda x, val=const_value: np.full_like(x, val, dtype=float)
             else:
-                # 根据 tangentMode 预留接口：将来可根据 tangentMode 值采用不同处理方式
+                # Reserve interface based on tangentMode: future different processing methods can be added based on tangentMode values
                 if tangentMode[i] == 0 or tangentMode[i] == 1:
-                    # 将来可以在这里添加针对 tangentMode == 0 或 1 的特殊处理
-                    pass  # 目前暂时不做特殊处理，保持通用逻辑
+                    # Can add special handling for tangentMode == 0 or 1 here in the future
+                    pass  # Currently no special handling, maintain generic logic
                 
-                # 直接使用原来的斜率值，不再计算平均值
-                slope0 = sub_out[k]  # 直接使用 out_slope 作为起点斜率
-                slope1 = sub_in[k+1]  # 直接使用 in_slope 作为终点斜率
+                # Directly use original slope values, no longer calculate averages
+                slope0 = sub_out[k]  # Directly use out_slope as starting slope
+                slope1 = sub_in[k+1]  # Directly use in_slope as ending slope
 
-                # 🔒 安全兜底：如果斜率仍含 inf（理论上不该有），转常量
+                # 🔒 Safety fallback: if slopes still contain inf (shouldn't happen theoretically), convert to constant
                 if not (np.isfinite(slope0) and np.isfinite(slope1)):
                     interpolator = lambda x, val=y0: np.full_like(x, val, dtype=float)
                 else:
@@ -146,9 +146,9 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
     return segments
 
 
-# ===== 修改 _parse_m_Curve：适配新返回类型 =====
+# ===== Modified _parse_m_Curve: adapt to new return type =====
 def _parse_m_Curve(m_Curve_list):
-    """解析一个m_Curve块，并进行插值处理"""
+    """Parse an m_Curve block and perform interpolation processing"""
     parameter_keys = list(m_Curve_list[0].keys())
     parameter_keys.remove("serializedVersion")
     parameter_dict = {}
@@ -193,7 +193,7 @@ def _parse_m_Curve(m_Curve_list):
     return interpolation_list, max_time
 
 
-# ===== 保留其他函数不变 =====
+# ===== Keep other functions unchanged =====
 def _parse_curve(m_XCurves):
     output = {}
     general_times = 0

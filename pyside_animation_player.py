@@ -6,16 +6,16 @@ from dataclasses import dataclass, asdict
 @dataclass
 class PlayKwargs:
     """
-    描述 play 方法的可选关键字参数。
-    total=False 表示所有字段都是可选的，这符合 **kwargs 的特性。
+    Describes the optional keyword arguments for the play method.
+    total=False indicates that all fields are optional, which aligns with the characteristics of **kwargs.
     """
     path: str = 'general'
     timeReverse: bool = False
-    Eunit: Literal['x', 'y', 'z'] = 'z'  # 使用 Literal 限制字符串的取值范围
+    Eunit: Literal['x', 'y', 'z'] = 'z'
     Runit: Literal['x', 'y', 'z', 'w'] = 'w'
     Punit: Tuple[Literal['x', 'y', 'z', 'w'], Literal['x', 'y', 'z', 'w']] = ('x', 'y')
     Preverse: Tuple[bool, bool] = (False, False)
-    Pratio: Tuple[float, float] = (1, 1)  # 假设 Pratio 是浮点数比例
+    Pratio: Tuple[float, float] = (1.0, 1.0)
 
 
 class PysideAnimationPlayer(AnimationPlayer):
