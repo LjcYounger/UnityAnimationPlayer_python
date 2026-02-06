@@ -1,29 +1,19 @@
-from typing import TypedDict, Tuple, Literal
+from typing import Any, Dict, Tuple, Union
 from PySide6.QtCore import QTimer, Signal
 from animation_player import AnimationPlayer
-from dacite import from_dict
-from dataclasses import dataclass, asdict
-@dataclass
-class PlayKwargs:
-    """
-    Describes the optional keyword arguments for the play method.
-    total=False indicates that all fields are optional, which aligns with the characteristics of **kwargs.
-    """
-    path: str = 'general'
-    timeReverse: bool = False
-    Eunit: Literal['x', 'y', 'z'] = 'z'
-    Runit: Literal['x', 'y', 'z', 'w'] = 'w'
-    Punit: Tuple[Literal['x', 'y', 'z', 'w'], Literal['x', 'y', 'z', 'w']] = ('x', 'y')
-    Preverse: Tuple[bool, bool] = (False, False)
-    Pratio: Tuple[float, float] = (1.0, 1.0)
 
+from kwargs import type_kwargs
 
 class PysideAnimationPlayer(AnimationPlayer):
-    def __init__(self, signal: Signal, anim_path: str, stop_time: float = None,
-                 **kwargs):
-        super().__init__(anim_path, stop_time)
+    def __init__(self, signal: Signal, file_path: str, stop_time: float = None,
+                 **kwargs: Union[str, bool, Tuple, float]):
+        """All available kwargs are listed in kwargs.py"""
+        
+        self.parameters = type_kwargs(**kwargs)
+
+        super().__init__(file_path, stop_time)
+
         self.signal = signal
-        self.parameters = asdict(from_dict(PlayKwargs, kwargs))
         self.mode = 0  # 0: stop, 1: forward_play, -1: backward_play
         self.t = 0
         self.delta_t = 1/60

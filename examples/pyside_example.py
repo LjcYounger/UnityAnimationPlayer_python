@@ -215,7 +215,8 @@ class AnimationTestWindow(QMainWindow):
         try:
             self.anim_player = PysideAnimationPlayer(
                 signal=self.anim_signal,
-                anim_path=anim_path,
+                file_path=anim_path,
+                stop_time=None, 
                 path='general'
             )
             
