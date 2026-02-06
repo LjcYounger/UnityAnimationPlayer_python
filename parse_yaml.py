@@ -59,19 +59,19 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
         elif mode == 1:  # in_sl multiplied, out_sl not multiplied
             if finite_in:
-                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)
+                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)  # NOT ACCURATE
             if finite_out:
                 out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
         elif mode == 2:  # Both in_sl and out_sl multiplied
             if finite_in:
-                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)
+                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)  # NOT ACCURATE
             if finite_out:
-                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)
+                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)  # NOT ACCURATE
         elif mode == 3:  # in_sl not multiplied, out_sl multiplied
             if finite_in:
                 in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
             if finite_out:
-                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)
+                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)  # NOT ACCURATE
         # If weightedMode value is not 0-3, do no processing, keep original values
 
     tangentMode = np.array(tangentMode, dtype=float)
