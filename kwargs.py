@@ -25,8 +25,8 @@ class PlayKwargs:
     """
     path: str = 'general'
     timeReverse: bool = False
-    Eunit: Union[Literal['x', 'y', 'z'], Tuple[Literal['x', 'y', 'z'], ...]] = ('z',)
-    Runit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('w',)
+    Eunit: Union[Literal['x', 'y', 'z'], Tuple[Literal['x', 'y', 'z'], ...]] = 'z'
+    Runit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = 'w'
     Punit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')
     Preverse: Union[bool, Tuple[bool, ...]] = False
     Pratio: Union[float, Tuple[float, ...]] = 1.0

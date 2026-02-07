@@ -84,7 +84,7 @@ class AnimationDisplayWidget(QLabel):
         
         transform = QTransform()
         transform.translate(width / 2, height / 2)
-        transform.rotate(self.rotation)
+        transform.rotate(self.rotation, Qt.ZAxis)
         transform.translate(-width / 2, -height / 2)
         rotated_pixmap = scaled_pixmap.transformed(transform, Qt.SmoothTransformation)
         
