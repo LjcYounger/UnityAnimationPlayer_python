@@ -10,12 +10,16 @@ class PopupWindow(QWidget):
         super().__init__()
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
+        # Customize the popup window
         if anim == 'examples/AnimationClip/UIAni_Popup_System.anim':
             kwargs.setdefault('path', 'Center/Popup')
             kwargs.setdefault('Pratio', (1, 0.5))
+        
+        self.switch_anim(anim, **kwargs)
+    def switch_anim(self, anim, **kwargs):
         self.anim_signal.connect(self.anim_signal_received)
-
         self.animation_player = PysideAnimationPlayer(self.anim_signal, anim, kwargs.get('stop_time', None), **kwargs)
+
     def play_anim(self, mode=1, initial_time=0):
         self.position0 = (self.pos().x(), self.pos().y())
         self.move(10000, 10000)
@@ -26,7 +30,7 @@ class PopupWindow(QWidget):
 
     def anim_signal_received(self, dic):
         position = dic.get('position', (0, 0))
-        self.move(*[int(x - y) for x, y in zip(self.position0, position)])
+        self.move(int(self.position0[0] + position[0]), int(self.position0[1] - position[1]))
 
 
 
@@ -50,12 +54,15 @@ class ExamplePopupWindow(PopupWindow):
         self.slow_button.clicked.connect(lambda: self.play_anim(0.1))
         self.reverse_button = QPushButton("Reverse Replay")
         self.reverse_button.clicked.connect(lambda: self.play_anim(-1, self.animation_player.stop_time))
+        self.switch_button = QPushButton("Switch to Another Animation")
+        self.switch_button.clicked.connect(lambda: self.switch_anim(anim='examples/AnimationClip/T.anim'))
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.label, alignment=Qt.AlignCenter)
         self.layout.addWidget(self.fast_button)
         self.layout.addWidget(self.slow_button)
         self.layout.addWidget(self.reverse_button)
+        self.layout.addWidget(self.switch_button)
 
         self.setLayout(self.layout)
 
