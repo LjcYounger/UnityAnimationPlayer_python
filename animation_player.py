@@ -45,7 +45,7 @@ class AnimationPlayer:
         nowtime1 = nowtime
         if typed_kwargs['timeReverse']:
             nowtime = self.stop_time - nowtime
-        if nowtime1 <= self.stop_time:
+        if nowtime1 <= self.stop_time and nowtime1 >= 0:
             dic: Dict[str, Any] = {}
             ani = self.anim[typed_kwargs['path']]
             if 'Euler' in ani:

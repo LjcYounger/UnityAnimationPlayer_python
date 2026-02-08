@@ -33,6 +33,14 @@ class PysideAnimationPlayer(AnimationPlayer):
         elif self.mode < 0:
             self.t += self.delta_t * self.mode
     def play(self):
-        self.mode = 1
         self.timer.start(self.delta_t * 1000)
+
+    def stop(self):
+        self.timer.stop()
+
+    def set_time(self, t: float):
+        self.t = t
+
+    def set_mode(self, mode: int | float):
+        self.mode = mode
 
