@@ -200,7 +200,7 @@ def _parse_curve(m_XCurves):
     max_times = []
     for m_XCurve in m_XCurves:
         path = m_XCurve["path"]
-        if path is None:
+        if not path:
             path = 'general' if general_times == 0 else f"general({general_times})"
             general_times += 1
         else:

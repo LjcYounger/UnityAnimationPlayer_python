@@ -20,9 +20,10 @@ class PopupWindow(QWidget):
         self.anim_signal.connect(self.anim_signal_received)
         self.animation_player = PysideAnimationPlayer(self.anim_signal, anim, kwargs.get('stop_time', None), **kwargs)
 
-    def play_anim(self, mode=1, initial_time=0):
+    def play_anim(self, mode=1, initial_time=0, initial_invisiable=True):
         self.position0 = (self.pos().x(), self.pos().y())
-        self.move(10000, 10000)
+        if initial_invisiable:
+            self.move(10000, 10000)
         self.show()
         self.animation_player.set_mode(mode)
         self.animation_player.set_time(initial_time)
@@ -53,7 +54,7 @@ class ExamplePopupWindow(PopupWindow):
         self.slow_button = QPushButton("Slow Replay")
         self.slow_button.clicked.connect(lambda: self.play_anim(0.1))
         self.reverse_button = QPushButton("Reverse Replay")
-        self.reverse_button.clicked.connect(lambda: self.play_anim(-1, self.animation_player.stop_time))
+        self.reverse_button.clicked.connect(lambda: self.play_anim(-1, self.animation_player.stop_time, False))
         self.switch_button = QPushButton("Switch to Another Animation")
         self.switch_button.clicked.connect(lambda: self.switch_anim(anim='examples/AnimationClip/T.anim'))
 
