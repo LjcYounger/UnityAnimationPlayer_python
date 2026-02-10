@@ -18,7 +18,7 @@ def _str_constructor(loader, node):
 # Prevent yaml from parsing "y" as True
 yaml.constructor.add_constructor('tag:yaml.org,2002:bool', _str_constructor)
 
-temp_folder_path = os.path.join(tempfile.gettempdir(), 'DesktopLobby')
+temp_folder_path = os.path.join(tempfile.gettempdir(), 'UnityAnimationPlayer_python')
 os.makedirs(temp_folder_path, exist_ok=True)
 
 

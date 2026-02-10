@@ -1,6 +1,6 @@
 # Unity Animation Player for Python
 
-These experimental scripts enable you to play smooth 2D/3D(maybe) Unity animations in Python.
+These scripts enable you to play smooth 2D/3D(maybe) Unity animations in Python.
 
 It may be useful when you animate window labels.
 
