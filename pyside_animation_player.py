@@ -14,7 +14,7 @@ class PysideAnimationPlayer(AnimationPlayer):
         super().__init__(file_path, stop_time)
 
         self.signal = signal
-        self.mode = 0  # 0: stop, 1: forward_play, -1: backward_play
+        self.mode = 1  # 0: stop, 1: forward_play, -1: backward_play
         self.t = 0
         self.delta_t = 1/60
         self.timer = QTimer()
