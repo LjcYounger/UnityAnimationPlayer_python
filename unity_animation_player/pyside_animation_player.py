@@ -1,8 +1,8 @@
 from typing import Any, Dict, Tuple, Union
 from PySide6.QtCore import QTimer, Signal
-from animation_player import AnimationPlayer
+from .animation_player import AnimationPlayer
 
-from kwargs import type_kwargs
+from .kwargs import type_kwargs
 
 class PysideAnimationPlayer(AnimationPlayer):
     def __init__(self, signal: Signal, file_path: str, stop_time: float = None,
@@ -14,7 +14,7 @@ class PysideAnimationPlayer(AnimationPlayer):
         super().__init__(file_path, stop_time)
 
         self.signal = signal
-        self.mode = 1  # 0: stop, 1: forward_play, -1: backward_play
+        self.mode = 1  # 0: stop, >0: forward_play, <0: backward_play
         self.t = 0
         self.delta_t = 1/60
         self.timer = QTimer()
@@ -22,17 +22,27 @@ class PysideAnimationPlayer(AnimationPlayer):
 
     def _pyside_play_frame(self):
         result, self.playable = self.play_frame(self.t, **self.parameters)
+        result ['playable'] = self.playable
+
         if self.playable:
             self.signal.emit(result)
         else:
             self.signal.emit(self.return_default(path=self.parameters['path'])[0])
-            self.mode = 0
             self.timer.stop()
-        if self.mode > 0:
-            self.t += self.delta_t * self.mode
-        elif self.mode < 0:
-            self.t += self.delta_t * self.mode
-    def play(self):
+
+        self.t += self.delta_t * self.mode
+
+    def play(self, t: float = None, mode: int | float = None):
+        if mode is not None:
+            self.mode = mode
+
+        if t is not None:
+            self.t = t
+        elif self.mode >= 0:
+            self.t = 0
+        else:
+            self.t = self.stop_time
+
         self.timer.start(self.delta_t * 1000)
 
     def stop(self):

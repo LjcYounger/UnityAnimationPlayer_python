@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QPixmap, QPainter, QTransform
 
-from pyside_animation_player import PysideAnimationPlayer
+from unity_animation_player import PysideAnimationPlayer
 
 
 class AnimationDisplayWidget(QLabel):

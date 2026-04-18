@@ -1,7 +1,7 @@
 # Base Class
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, Signal
-from pyside_animation_player import PysideAnimationPlayer
+from unity_animation_player import PysideAnimationPlayer
 
 class PopupWindow(QWidget):
     anim_signal = Signal(dict)

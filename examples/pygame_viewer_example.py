@@ -2,7 +2,7 @@ import os
 import pygame
 from pygame.locals import *
 
-from animation_player import AnimationPlayer
+from unity_animation_player import AnimationPlayer
 
 # --- Configuration ---
 ANIM_FOLDER = "examples/AnimationClip"  # Change to your animation folder path

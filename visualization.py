@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 # Import your original AnimationPlayer without modification
-from animation_player import AnimationPlayer
+from unity_animation_player import AnimationPlayer
 
 
 def main():

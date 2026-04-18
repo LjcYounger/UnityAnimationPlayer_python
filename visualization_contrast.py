@@ -5,7 +5,7 @@ from matplotlib.lines import Line2D
 import time
 
 # Import your original AnimationPlayer without modification
-from animation_player import AnimationPlayer
+from unity_animation_player import AnimationPlayer
 
 
 def sample_animation_data(player, selected_path, dt, max_t):

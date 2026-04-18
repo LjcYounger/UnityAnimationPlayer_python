@@ -2,10 +2,10 @@ from functools import lru_cache
 from typing import Dict, Any, Tuple, Union, Optional
 from dataclasses import asdict
 
-from parse_yaml import parse_anim
-from cache_yaml import load_yaml
+from .parse_yaml import parse_anim
+from .cache_yaml import load_yaml
 
-from kwargs import PlayKwargs, PlayKwargsDict
+from .kwargs import PlayKwargs, PlayKwargsDict
 
 @lru_cache(maxsize=64)
 def load_anim(path: str) -> Tuple[Dict[str, Any], float]:
@@ -50,7 +50,7 @@ class AnimationPlayer:
             ani = self.anim[typed_kwargs['path']]
             if 'Euler' in ani:
                 e = ani.get('Euler')
-                # Handle Eunit as single string or tuple
+
                 eunit = typed_kwargs['Eunit']
                 if isinstance(eunit, tuple):
                     euler = tuple(self._get_seg_result(e[unit], nowtime) for unit in eunit)
@@ -60,7 +60,7 @@ class AnimationPlayer:
 
             if 'Rotation' in ani:
                 r = ani.get('Rotation')
-                # Handle Runit as single string or tuple
+
                 runit = typed_kwargs['Runit']
                 if isinstance(runit, tuple):
                     rotation = tuple(self._get_seg_result(r[unit], nowtime) for unit in runit)
@@ -70,16 +70,16 @@ class AnimationPlayer:
 
             if 'Position' in ani:
                 p = ani.get('Position')
-                # Handle Punit, Preverse, Pratio as single value or tuple
+
                 punit = typed_kwargs['Punit']
                 preverse = typed_kwargs['Preverse']
                 pratio = typed_kwargs['Pratio']
                 
                 if isinstance(punit, tuple):
-                    # Punit is tuple case - apply values sequentially
+
                     position_values = []
                     for i, unit in enumerate(punit):
-                        # Get corresponding reverse and ratio values by index
+
                         reverse_val = preverse[i] if isinstance(preverse, tuple) else preverse
                         ratio_val = pratio[i] if isinstance(pratio, tuple) else pratio
                         pos_val = self._get_seg_result(p[unit], nowtime) * ratio_val
@@ -87,7 +87,7 @@ class AnimationPlayer:
                         position_values.append(pos_val)
                     dic['position'] = tuple(position_values)
                 else:
-                    # Punit is single string case - apply same values to all coordinates
+
                     reverse_val = preverse if isinstance(preverse, bool) else preverse[0]
                     ratio_val = pratio if isinstance(pratio, (int, float)) else pratio[0]
                     pos_val = self._get_seg_result(p[punit], nowtime) * ratio_val
@@ -159,11 +159,6 @@ class AnimationPlayer:
         else:
             float_val = 0.0
 
-        return dic, False
+        dic['playable'] = False
 
-if __name__ == '__main__':
-    an = AnimationPlayer('examples/AnimationClip/T.anim')
-    dic = an.play_frame(0.83, path='general', Punit=('x', 'y', 'z'), Pratio=(0.01, 100, 1))
-    print(dic)
-    dic = an.play_frame(0.245, path='general', Punit='y')
-    print(dic)
+        return dic, False
