@@ -63,8 +63,8 @@ def load_yaml(path: str, cache=True):
         metadata = _load_cache_metadata(json_path)
 
         if (metadata and
-                metadata.get('sha256') == source_sha256 and
-                os.path.exists(json_path)):
+            metadata.get('sha256') == source_sha256 and
+            os.path.exists(json_path)):
 
             # Cache is valid
             with open(json_path, 'r', encoding='utf-8') as f:

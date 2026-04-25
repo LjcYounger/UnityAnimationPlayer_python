@@ -4,6 +4,8 @@ from .animation_player import AnimationPlayer
 
 from .kwargs import type_kwargs
 
+from .utils import timer
+
 class PysideAnimationPlayer(AnimationPlayer):
     def __init__(self, signal: Signal, file_path: str, stop_time: float = None,
                  **kwargs: Union[str, bool, Tuple, float]):

@@ -1,4 +1,4 @@
-from scipy.interpolate import CubicHermiteSpline, interp1d
+from .numba_hermite import CubicHermiteSpline
 import numpy as np
 
 class MixedSegment:
@@ -115,12 +115,8 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 slope0 = sub_out[k]
                 slope1 = sub_in[k+1]
 
-                try:
-                    hermite = CubicHermiteSpline([x0, x1], [y0, y1], [slope0, slope1])
-                    interpolator = hermite
-                except Exception:
-                    # fallback to linear
-                    interpolator = interp1d([x0, x1], [y0, y1], kind='linear', fill_value="extrapolate")
+                hermite = CubicHermiteSpline(x0, x1, y0, y1, slope0, slope1)
+                interpolator = hermite
 
             segments.append(MixedSegment(x0, x1, interpolator))
 
