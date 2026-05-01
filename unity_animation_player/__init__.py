@@ -1,10 +1,12 @@
 from .animation_player import AnimationPlayer
 from .pyside_animation_player import PysideAnimationPlayer
-from .numba_hermite import CubicHermiteSpline
+from .numba_interpolaion import RationalBezierInterpolation
+from .config import USE_JIT
 
-# Compile in advance
-_ = CubicHermiteSpline(0, 1, 0, 1, 0, 0)
-_(0.5)
+if USE_JIT:
+    # Compile in advance
+    _ = RationalBezierInterpolation(0, 1, 0, 1, 0, 0, 1, 1, 1, 1)
+    _(0.5)
 
 __all__ = [
     "AnimationPlayer",

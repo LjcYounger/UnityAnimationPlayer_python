@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from .example_windows.example_window import ExampleWindow
+from .qml_window_example_windows.ball_window import ExampleWindow
 
 def main():
     app = QApplication(sys.argv)
