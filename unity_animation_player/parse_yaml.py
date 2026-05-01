@@ -1,4 +1,4 @@
-from .numba_hermite import CubicHermiteSpline
+from .numba_interpolaion import RationalBezierInterpolation
 import numpy as np
 
 class MixedSegment:
@@ -40,11 +40,13 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
     in_sl = np.array(in_sl_raw, dtype=float)
     out_sl = np.array(out_sl_raw, dtype=float)
 
+    """
     for i in range(len(weightedMode)):
         mode = int(weightedMode[i])
         # Create finite value mask
         finite_in = np.isfinite(in_sl[i])
         finite_out = np.isfinite(out_sl[i])
+        
         
         if mode == 0:  # Neither in_sl nor out_sl multiplied by weights
             # Only clip finite values, don't multiply by weights
@@ -67,6 +69,7 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
             if finite_out:
                 out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)  # NOT ACCURATE
+    """
 
     tangentMode = np.array(tangentMode, dtype=float)
 
@@ -88,6 +91,8 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
         sub_y = y_points[i0:i1+1]
         sub_in = in_sl[i0:i1+1]
         sub_out = out_sl[i0:i1+1]
+        weight_in = in_weights[i0:i1+1]
+        weight_out = out_weights[i0:i1+1]
 
         num_intervals = len(sub_x) - 1
         if num_intervals <= 0:
@@ -114,8 +119,11 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
             else:
                 slope0 = sub_out[k]
                 slope1 = sub_in[k+1]
+                weight0 = weight_out[k]
+                weight1 = weight_in[k+1]
 
-                hermite = CubicHermiteSpline(x0, x1, y0, y1, slope0, slope1)
+
+                hermite = RationalBezierInterpolation(x0, x1, y0, y1, slope0, slope1, 1/3, weight0, weight1, 1/3)
                 interpolator = hermite
 
             segments.append(MixedSegment(x0, x1, interpolator))

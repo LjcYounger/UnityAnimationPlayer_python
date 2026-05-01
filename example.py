@@ -13,7 +13,7 @@ for file_path in example_files:
     EXAMPLE.append(example_name)
 
 print("Choose an example:")
-
+    
 for i, example in enumerate(EXAMPLE):
     print(f"{i+1}.{example}")
 

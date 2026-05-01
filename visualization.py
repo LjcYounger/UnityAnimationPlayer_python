@@ -38,7 +38,7 @@ def main():
         selected_path = fallback
 
     # 4. Sample position over time (from 0 to stop_time, step = 0.002s)
-    dt = 0.002
+    dt = 0.0002
     max_t = player.stop_time
     times = np.arange(0, max_t + dt, dt)
     xs, ys = [], []

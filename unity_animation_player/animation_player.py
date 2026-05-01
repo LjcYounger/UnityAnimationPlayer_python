@@ -2,6 +2,8 @@ from functools import lru_cache
 from typing import Dict, Any, Tuple, Union, Optional
 from dataclasses import asdict
 
+import numpy as np
+
 from .parse_yaml import parse_anim
 from .cache_yaml import load_yaml
 
@@ -162,3 +164,9 @@ class AnimationPlayer:
         dic['playable'] = False
 
         return dic, False
+    
+    def sample_range(self, sample_rate=0.01, t_start=None, t_end=None, **kwargs):
+        t_start = 0.0 if t_start is None else t_start
+        t_end = self.stop_time if t_end is None else t_end
+        sample_points = [self.play_frame(t, **kwargs)[0] for t in np.arange(t_start, t_end, sample_rate)]
+        return sample_points

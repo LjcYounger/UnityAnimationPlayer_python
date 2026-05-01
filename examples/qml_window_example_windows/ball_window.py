@@ -1,7 +1,7 @@
 from pathlib import Path
 from dataclasses import dataclass
 
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 from PySide6.QtCore import Qt, QUrl, Slot, Signal, QObject
 from PySide6.QtQuickWidgets import QQuickWidget
 
@@ -11,6 +11,7 @@ import os
 
 from unity_animation_player import PysideAnimationPlayer
 from .popup_window import PopupWindow
+from .graph_window import AnimGraphWidget
 
 
 # 定义消息处理器
@@ -70,6 +71,10 @@ class ExampleWindow(PopupWindow):
 
         main_layout = QVBoxLayout()
         
+        #self.graph_widget = AnimGraphWidget()
+        #self.graph_widget.setFixedSize(800, 200)
+        #main_layout.addWidget(self.graph_widget)
+
         self.quick_widget = QQuickWidget()
         self.quick_widget.setResizeMode(QQuickWidget.ResizeMode.SizeRootObjectToView)
         self.quick_widget.setSource(QUrl.fromLocalFile(Path(__file__).parent / "example.qml"))
@@ -88,6 +93,8 @@ class ExampleWindow(PopupWindow):
         self.ball_animation_signal.connect(self.on_ball_signal_received)
         self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, Pratio=(9, 4))
 
+        pos_points = [point['position'] for point in self.ball_animation_player.sample_range(0.001)]
+        #self.graph_widget.update_plot(pos_points)
         self.play_anim()
     
     def setup_multiple_animations(self, button_names):
