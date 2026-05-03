@@ -1,5 +1,5 @@
-/__pycache__
-/unity_animation_player/__pycache__
+__pycache__
+unity_animation_player/__pycache__
 test*.py
-/examples/AnimationClip
-!/examples/AnimationClip/T.anim
+examples/AnimationClip/*
+!examples/AnimationClip/T.anim
