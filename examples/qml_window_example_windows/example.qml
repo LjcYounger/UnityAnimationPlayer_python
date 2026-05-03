@@ -111,6 +111,7 @@ Item {
 
             Slider {
                 id: valueSlider
+                objectName: "valueSlider"
                 from: -5
                 to: 5
                 value: 1

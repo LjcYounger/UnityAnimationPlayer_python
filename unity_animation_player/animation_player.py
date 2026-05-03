@@ -168,5 +168,5 @@ class AnimationPlayer:
     def sample_range(self, sample_rate=0.01, t_start=None, t_end=None, **kwargs):
         t_start = 0.0 if t_start is None else t_start
         t_end = self.stop_time if t_end is None else t_end
-        sample_points = [self.play_frame(t, **kwargs)[0] for t in np.arange(t_start, t_end, sample_rate)]
+        sample_points = {t: self.play_frame(t, **kwargs)[0] for t in np.arange(t_start, t_end, sample_rate)}
         return sample_points

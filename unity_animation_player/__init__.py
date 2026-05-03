@@ -1,5 +1,6 @@
 from .animation_player import AnimationPlayer
 from .pyside_animation_player import PysideAnimationPlayer
+from .kwargs import PlayKwargs, PlayKwargsDict, type_kwargs
 from .numba_interpolaion import RationalBezierInterpolation
 from .config import USE_JIT
 
@@ -10,5 +11,8 @@ if USE_JIT:
 
 __all__ = [
     "AnimationPlayer",
-    "PysideAnimationPlayer"
+    "PysideAnimationPlayer",
+    "PlayKwargs",
+    "PlayKwargsDict",
+    "type_kwargs"
 ]
