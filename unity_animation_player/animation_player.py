@@ -27,7 +27,10 @@ def type_kwargs(**kwargs) -> PlayKwargsDict:
         'rotation_unit': merged_kwargs['rotation_unit'],
         'position_unit': merged_kwargs['position_unit'],
         'position_reverse': merged_kwargs['position_reverse'],
-        'position_ratio': merged_kwargs['position_ratio']
+        'position_ratio': merged_kwargs['position_ratio'],
+        'scale_unit': merged_kwargs['scale_unit'],
+        'scale_reverse': merged_kwargs['scale_reverse'],
+        'scale_ratio': merged_kwargs['scale_ratio']
     }
     return typed_kwargs
 
@@ -98,8 +101,26 @@ class AnimationPlayer:
 
             if 'Scale' in ani:
                 s = ani.get('Scale')
-                scale = (self._get_seg_result(s['x'], nowtime), self._get_seg_result(s['y'], nowtime))
-                dic['scale'] = scale
+                
+                scale_unit = typed_kwargs['scale_unit']
+                scale_reverse = typed_kwargs['scale_reverse']
+                scale_ratio = typed_kwargs['scale_ratio']
+                
+                if isinstance(scale_unit, tuple):
+                    scale_values = []
+                    for i, unit in enumerate(scale_unit):
+                        reverse_val = scale_reverse[i] if isinstance(scale_reverse, tuple) else scale_reverse
+                        ratio_val = scale_ratio[i] if isinstance(scale_ratio, tuple) else scale_ratio
+                        val = self._get_seg_result(s[unit], nowtime) * ratio_val
+                        val = -val if reverse_val else val
+                        scale_values.append(val)
+                    dic['scale'] = tuple(scale_values)
+                else:
+                    reverse_val = scale_reverse if isinstance(scale_reverse, bool) else scale_reverse[0]
+                    ratio_val = scale_ratio if isinstance(scale_ratio, (int, float)) else scale_ratio[0]
+                    val = self._get_seg_result(s[scale_unit], nowtime) * ratio_val
+                    val = -val if reverse_val else val
+                    dic['scale'] = val
 
             if 'Float' in ani:
                 f = ani.get('Float')
@@ -154,7 +175,11 @@ class AnimationPlayer:
                 dic['position'] = default_value
 
         if 'Scale' in ani:
-            dic['scale'] = (default_value, default_value)
+            scale_unit = typed_kwargs['scale_unit']
+            if isinstance(scale_unit, tuple):
+                dic['scale'] = tuple(default_value for _ in scale_unit)
+            else:
+                dic['scale'] = default_value
 
         if 'Float' in ani:
             dic['float'] = default_value

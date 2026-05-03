@@ -10,6 +10,9 @@ class PlayKwargsDict(TypedDict, total=False):
     position_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]]
     position_reverse: Union[bool, Tuple[bool, ...]]
     position_ratio: Union[float, Tuple[float, ...]]
+    scale_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]]
+    scale_reverse: Union[bool, Tuple[bool, ...]]
+    scale_ratio: Union[float, Tuple[float, ...]]
 
 
 @dataclass
@@ -30,6 +33,9 @@ class PlayKwargs:
     position_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')
     position_reverse: Union[bool, Tuple[bool, ...]] = False
     position_ratio: Union[float, Tuple[float, ...]] = 1.0
+    scale_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y', 'z')
+    scale_reverse: Union[bool, Tuple[bool, ...]] = False
+    scale_ratio: Union[float, Tuple[float, ...]] = 1.0
 
 
 def type_kwargs(**kwargs) -> PlayKwargsDict:
