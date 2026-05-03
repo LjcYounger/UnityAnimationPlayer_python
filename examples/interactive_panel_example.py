@@ -4,7 +4,7 @@ from pathlib import Path
 from dataclasses import asdict
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QFrame, QCheckBox, QDoubleSpinBox
+    QLabel, QComboBox, QFrame, QCheckBox, QDoubleSpinBox, QPushButton
 )
 from PySide6.QtCore import Qt
 
@@ -397,6 +397,9 @@ class InteractivePanel(QWidget):
         self.sc_line.setFrameShape(QFrame.HLine)
         self.control_layout.addWidget(self.sc_line)
 
+        self.ball_window_button = QPushButton('Show Ball Window')
+        self.control_layout.addWidget(self.ball_window_button)
+
         self.control_layout.addStretch()
         
         self.main_layout.addWidget(self.control_widget)
@@ -458,6 +461,8 @@ class InteractivePanel(QWidget):
         self.s_ra_x_spin.valueChanged.connect(self.on_scale_ratio_xyz_changed)
         self.s_ra_y_spin.valueChanged.connect(self.on_scale_ratio_xyz_changed)
         self.s_ra_z_spin.valueChanged.connect(self.on_scale_ratio_xyz_changed)
+
+        self.ball_window_button.clicked.connect(self.on_ball_window_button_pressed)
 
     def update_animation(self, animation_name='T.anim'):
         if not animation_name or animation_name not in self.animations:
@@ -713,6 +718,10 @@ class InteractivePanel(QWidget):
         
         print(f"Scale Ratio: {self.play_kwargs.scale_ratio}")
         self.update_graph()
+
+    def on_ball_window_button_pressed(self, button_name):
+        import subprocess
+        subprocess.Popen([sys.executable, 'example.py', 'qml_window'])
 
     def update_graph(self):
         if not self.play_kwargs.path: return

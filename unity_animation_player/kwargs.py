@@ -33,7 +33,7 @@ class PlayKwargs:
     position_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')
     position_reverse: Union[bool, Tuple[bool, ...]] = False
     position_ratio: Union[float, Tuple[float, ...]] = 1.0
-    scale_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y', 'z')
+    scale_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')
     scale_reverse: Union[bool, Tuple[bool, ...]] = False
     scale_ratio: Union[float, Tuple[float, ...]] = 1.0
 
