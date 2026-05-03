@@ -24,7 +24,7 @@ class PopupWindow(QWidget):
         anim = kwargs.get('anim', 'examples/AnimationClip/UIAni_Popup_System.anim')
         if anim == 'examples/AnimationClip/UIAni_Popup_System.anim' and not kwargs:
             kwargs.setdefault('path', 'Center/Popup')
-            kwargs.setdefault('Pratio', (1, 0.5))
+            kwargs.setdefault('position_ratio', (1, 0.5))
 
         self.position0 = (self.pos().x(), self.pos().y())
         self.move(10000, 10000)

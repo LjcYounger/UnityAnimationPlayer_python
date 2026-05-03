@@ -22,12 +22,12 @@ def type_kwargs(**kwargs) -> PlayKwargsDict:
         
     typed_kwargs: PlayKwargsDict = {
         'path': str(merged_kwargs['path']),
-        'timeReverse': bool(merged_kwargs['timeReverse']),
-        'Eunit': merged_kwargs['Eunit'],
-        'Runit': merged_kwargs['Runit'],
-        'Punit': merged_kwargs['Punit'],
-        'Preverse': merged_kwargs['Preverse'],
-        'Pratio': merged_kwargs['Pratio']
+        'time_reverse': bool(merged_kwargs['time_reverse']),
+        'euler_unit': merged_kwargs['euler_unit'],
+        'rotation_unit': merged_kwargs['rotation_unit'],
+        'position_unit': merged_kwargs['position_unit'],
+        'position_reverse': merged_kwargs['position_reverse'],
+        'position_ratio': merged_kwargs['position_ratio']
     }
     return typed_kwargs
 
@@ -45,7 +45,7 @@ class AnimationPlayer:
         typed_kwargs = type_kwargs(**kwargs)
 
         nowtime1 = nowtime
-        if typed_kwargs['timeReverse']:
+        if typed_kwargs['time_reverse']:
             nowtime = self.stop_time - nowtime
         if nowtime1 <= self.stop_time and nowtime1 >= 0:
             dic: Dict[str, Any] = {}
@@ -53,46 +53,46 @@ class AnimationPlayer:
             if 'Euler' in ani:
                 e = ani.get('Euler')
 
-                eunit = typed_kwargs['Eunit']
-                if isinstance(eunit, tuple):
-                    euler = tuple(self._get_seg_result(e[unit], nowtime) for unit in eunit)
+                euler_unit = typed_kwargs['euler_unit']
+                if isinstance(euler_unit, tuple):
+                    euler = tuple(self._get_seg_result(e[unit], nowtime) for unit in euler_unit)
                 else:
-                    euler = self._get_seg_result(e[eunit], nowtime)
+                    euler = self._get_seg_result(e[euler_unit], nowtime)
                 dic['euler'] = euler
 
             if 'Rotation' in ani:
                 r = ani.get('Rotation')
 
-                runit = typed_kwargs['Runit']
-                if isinstance(runit, tuple):
-                    rotation = tuple(self._get_seg_result(r[unit], nowtime) for unit in runit)
+                rotation_unit = typed_kwargs['rotation_unit']
+                if isinstance(rotation_unit, tuple):
+                    rotation = tuple(self._get_seg_result(r[unit], nowtime) for unit in rotation_unit)
                 else:
-                    rotation = self._get_seg_result(r[runit], nowtime)
+                    rotation = self._get_seg_result(r[rotation_unit], nowtime)
                 dic['rotation'] = rotation
 
             if 'Position' in ani:
                 p = ani.get('Position')
 
-                punit = typed_kwargs['Punit']
-                preverse = typed_kwargs['Preverse']
-                pratio = typed_kwargs['Pratio']
+                position_unit = typed_kwargs['position_unit']
+                position_reverse = typed_kwargs['position_reverse']
+                position_ratio = typed_kwargs['position_ratio']
                 
-                if isinstance(punit, tuple):
+                if isinstance(position_unit, tuple):
 
                     position_values = []
-                    for i, unit in enumerate(punit):
+                    for i, unit in enumerate(position_unit):
 
-                        reverse_val = preverse[i] if isinstance(preverse, tuple) else preverse
-                        ratio_val = pratio[i] if isinstance(pratio, tuple) else pratio
+                        reverse_val = position_reverse[i] if isinstance(position_reverse, tuple) else position_reverse
+                        ratio_val = position_ratio[i] if isinstance(position_ratio, tuple) else position_ratio
                         pos_val = self._get_seg_result(p[unit], nowtime) * ratio_val
                         pos_val = -pos_val if reverse_val else pos_val
                         position_values.append(pos_val)
                     dic['position'] = tuple(position_values)
                 else:
 
-                    reverse_val = preverse if isinstance(preverse, bool) else preverse[0]
-                    ratio_val = pratio if isinstance(pratio, (int, float)) else pratio[0]
-                    pos_val = self._get_seg_result(p[punit], nowtime) * ratio_val
+                    reverse_val = position_reverse if isinstance(position_reverse, bool) else position_reverse[0]
+                    ratio_val = position_ratio if isinstance(position_ratio, (int, float)) else position_ratio[0]
+                    pos_val = self._get_seg_result(p[position_unit], nowtime) * ratio_val
                     pos_val = -pos_val if reverse_val else pos_val
                     dic['position'] = pos_val
 
@@ -139,17 +139,17 @@ class AnimationPlayer:
         dic: Dict[str, Any] = {}
         ani = self.anim[typed_kwargs['path']]
         if 'Euler' in ani:
-            eunit = typed_kwargs['Eunit']
-            dic['euler'] = tuple(default_value for _ in eunit) if isinstance(eunit, tuple) else default_value
+            euler_unit = typed_kwargs['euler_unit']
+            dic['euler'] = tuple(default_value for _ in euler_unit) if isinstance(euler_unit, tuple) else default_value
 
         if 'Rotation' in ani:
-            runit = typed_kwargs['Runit']
-            dic['rotation'] = tuple(default_value for _ in runit) if isinstance(runit, tuple) else default_value
+            rotation_unit = typed_kwargs['rotation_unit']
+            dic['rotation'] = tuple(default_value for _ in rotation_unit) if isinstance(rotation_unit, tuple) else default_value
 
         if 'Position' in ani:
-            punit = typed_kwargs['Punit']
-            if isinstance(punit, tuple):
-                dic['position'] = tuple(default_value for _ in punit)
+            position_unit = typed_kwargs['position_unit']
+            if isinstance(position_unit, tuple):
+                dic['position'] = tuple(default_value for _ in position_unit)
             else:
                 dic['position'] = default_value
 

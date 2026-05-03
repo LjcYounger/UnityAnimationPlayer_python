@@ -91,7 +91,7 @@ class ExampleWindow(PopupWindow):
         self.setup_multiple_animations(self.animated_buttons)
 
         self.ball_animation_signal.connect(self.on_ball_signal_received)
-        self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, Pratio=(9, 4))
+        self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, position_ratio=(9, 4))
 
         pos_points = [point['position'] for point in self.ball_animation_player.sample_range(0.001).values()]
         #self.graph_widget.update_plot(pos_points)#

@@ -13,7 +13,7 @@ class PopupWindow(QWidget):
         # Customize the popup window
         if anim == 'examples/AnimationClip/UIAni_Popup_System.anim':
             kwargs.setdefault('path', 'Center/Popup')
-            kwargs.setdefault('Pratio', (1, 0.5))
+            kwargs.setdefault('position_ratio', (1, 0.5))
         
         self.switch_anim(anim, **kwargs)
     def switch_anim(self, anim, **kwargs):

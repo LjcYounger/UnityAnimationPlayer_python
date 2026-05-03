@@ -76,7 +76,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>TimeReverse</string>
+     <string>time_reverse</string>
     </property>
    </widget>
    <widget class="QWidget" name="horizontalLayoutWidget_3">
