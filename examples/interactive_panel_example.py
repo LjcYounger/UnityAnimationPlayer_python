@@ -8,6 +8,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
+import pyqtgraph as pg
+import qdarkstyle
+
 from unity_animation_player import AnimationPlayer, PlayKwargs
 from .qml_window_example_windows.graph_window import AnimGraphWidget
 
@@ -769,8 +772,14 @@ class InteractivePanel(QWidget):
 
 
 def main():
+    pg.setConfigOption('background', '#19232D')
+
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
+
+    with open(Path(__file__).parent / 'style.qss', 'r', encoding='utf-8') as f:
+        app.setStyleSheet(f.read())
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyside6())
 
     interactive_panel = InteractivePanel(screen_size=screen.size().toTuple())
     interactive_panel.show()
