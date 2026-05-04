@@ -739,14 +739,20 @@ class InteractivePanel(QWidget):
         sample_units = self.play_kwargs.position_unit if sample_transform == 'Position' \
                         else self.play_kwargs.rotation_unit if sample_transform == 'Rotation' \
                         else self.play_kwargs.euler_unit if sample_transform == 'Euler' \
-                        else self.play_kwargs.scale_unit
+                        else self.play_kwargs.scale_unit if sample_transform == 'Scale' \
+                        else None  # Float
         for graph_widget in self.graph_widgets:
             graph_widget.plot_widget.clear()
             graph_widget.title.setText("")
-        for i, unit in enumerate(sample_units):
-            sample_points = [(t, round(sample_data[t][sample_transform.lower()][i], 12)) for t in sample_data.keys()]
-            self.graph_widgets[i].update_plot(sample_points)
-            self.graph_widgets[i].title.setText(f"{sample_transform} ({unit})")
+        if sample_units:
+            for i, unit in enumerate(sample_units):
+                sample_points = [(t, round(sample_data[t][sample_transform.lower()][i], 12)) for t in sample_data.keys()]
+                self.graph_widgets[i].update_plot(sample_points)
+                self.graph_widgets[i].title.setText(f"{sample_transform} ({unit})")
+        else:
+            sample_points = [(t, round(sample_data[t][sample_transform.lower()], 12)) for t in sample_data.keys()]
+            self.graph_widgets[0].update_plot(sample_points)
+            self.graph_widgets[0].title.setText(f"{sample_transform}")
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_F11:

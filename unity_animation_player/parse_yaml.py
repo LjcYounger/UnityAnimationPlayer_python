@@ -197,7 +197,7 @@ def _parse_curve(m_XCurves):
 def parse_anim(anim_dict):
     anim_dict = anim_dict["AnimationClip"]
     stop_time = anim_dict["m_AnimationClipSettings"]["m_StopTime"]
-    m_XCurveses = ("m_RotationCurves", "m_CompressedRotationCurves", "m_EulerCurves", "m_PositionCurves", "m_ScaleCurves")
+    m_XCurveses = ("m_RotationCurves", "m_CompressedRotationCurves", "m_EulerCurves", "m_PositionCurves", "m_ScaleCurves", "m_FloatCurves")
     paths = {}
     for m_XCurves in m_XCurveses:
         m_XCurves_list = anim_dict[m_XCurves]

@@ -126,7 +126,7 @@ class AnimationPlayer:
                 f = ani.get('Float')
                 if isinstance(f, list):
                     float_val = self._get_seg_result(f, nowtime)
-                    dic['float'] = float_val
+                    dic['float'] = float_val.item() if isinstance(float_val, np.ndarray) else float_val
             else:
                 float_val = 0.0
             return dic, True
