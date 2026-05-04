@@ -726,7 +726,11 @@ class InteractivePanel(QWidget):
     def update_graph(self):
         if not self.play_kwargs.path: return
 
-        self.kwargs_label.setText(', '.join((f'{key}={round(value, 3) if type(value) == float else value}' for key, value in asdict(self.play_kwargs).items() if value is not None)))
+        self.kwargs_label.setText(', '.join((f'''{key}={round(value, 3) if type(value) == float 
+                                                        else '"'+value+'"' if type(value) == str 
+                                                        else value}''' 
+                                                        for key, value in asdict(self.play_kwargs).items() 
+                                                        if value is not None)))
         #print(asdict(self.play_kwargs))
         sample_data = self.animation_player.sample_range(sample_rate=0.002, t_start=None, t_end=None, **asdict(self.play_kwargs))
         sample_transform = self.transform_combo.currentText()

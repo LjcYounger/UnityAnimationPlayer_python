@@ -38,3 +38,4 @@ class AnimGraphWidget(QWidget):
         x_vals = [point[0] for point in points]
         y_vals = [point[1] for point in points]
         curve = self.plot_widget.plot(x_vals, y_vals, pen=pg.mkPen('r', width=1))
+        self.plot_widget.enableAutoRange()

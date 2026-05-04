@@ -8,8 +8,6 @@ if USE_JIT:
 else:
     njit = lambda *args, **kwargs: lambda f: f
 
-from numba import njit
-import numpy as np
 
 @njit(cache=True)
 def _hermite_spline_core(t, x0, x1, y0, y1, x1_ctl, y1_ctl, x2_ctl, y2_ctl, w0, w1, w2, w3):
