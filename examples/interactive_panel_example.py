@@ -16,7 +16,8 @@ class InteractivePanel(QWidget):
     def __init__(self, animation_folder="examples/AnimationClip", screen_size=(1366, 768)):
         super().__init__()
 
-        self.setMaximumWidth(screen_size[0])
+        self.screen_size = screen_size
+        self.setFixedWidth(self.screen_size[0])
         self.is_fullscreen = False
 
         self.animation_folder = Path(animation_folder)
@@ -732,7 +733,7 @@ class InteractivePanel(QWidget):
                                                         for key, value in asdict(self.play_kwargs).items() 
                                                         if value is not None)))
         #print(asdict(self.play_kwargs))
-        sample_data = self.animation_player.sample_range(sample_rate=0.002, t_start=None, t_end=None, **asdict(self.play_kwargs))
+        sample_data = self.animation_player.sample_range(sample_rate=0.001, t_start=None, t_end=None, **asdict(self.play_kwargs))
         sample_transform = self.transform_combo.currentText()
         if not sample_transform: return
         sample_units = self.play_kwargs.position_unit if sample_transform == 'Position' \
@@ -743,7 +744,7 @@ class InteractivePanel(QWidget):
             graph_widget.plot_widget.clear()
             graph_widget.title.setText("")
         for i, unit in enumerate(sample_units):
-            sample_points = [(t, sample_data[t][sample_transform.lower()][i]) for t in sample_data.keys()]
+            sample_points = [(t, round(sample_data[t][sample_transform.lower()][i], 12)) for t in sample_data.keys()]
             self.graph_widgets[i].update_plot(sample_points)
             self.graph_widgets[i].title.setText(f"{sample_transform} ({unit})")
 

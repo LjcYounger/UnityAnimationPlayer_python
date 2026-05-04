@@ -2,21 +2,22 @@ import os
 import json
 import tempfile
 import hashlib
-from ruamel.yaml import YAML
+import re
+import yaml
 
-yaml = YAML()
-yaml.preserve_quotes = True
-yaml.constructor.ignore_aliases = True
-
-
-def _str_constructor(loader, node):
-    if node.tag == 'tag:yaml.org,2002:bool' and node.value == 'y':
-        return 'y'
-    return loader.construct_scalar(node)
-
-
-# Prevent yaml from parsing "y" as True
-yaml.constructor.add_constructor('tag:yaml.org,2002:bool', _str_constructor)
+# Deleted:yaml = YAML()
+# Deleted:yaml.preserve_quotes = True
+# Deleted:yaml.constructor.ignore_aliases = True
+# Deleted:
+# Deleted:
+# Deleted:def _str_constructor(loader, node):
+# Deleted:    if node.tag == 'tag:yaml.org,2002:bool' and node.value == 'y':
+# Deleted:        return 'y'
+# Deleted:    return loader.construct_scalar(node)
+# Deleted:
+# Deleted:
+# Deleted:# Prevent yaml from parsing "y" as True
+# Deleted:yaml.constructor.add_constructor('tag:yaml.org,2002:bool', _str_constructor)
 
 temp_folder_path = os.path.join(tempfile.gettempdir(), 'unity_animation_player_python')
 os.makedirs(temp_folder_path, exist_ok=True)
@@ -79,7 +80,13 @@ def load_yaml(path: str, cache=True):
     except (FileNotFoundError, json.JSONDecodeError):
         # regenerate
         with open(path, 'r', encoding='utf-8') as y:
-            data = yaml.load(y)
+            content = y.read()
+            # 移除 %TAG 指令行
+            content = re.sub(r'^%TAG.*\n', '', content, flags=re.MULTILINE)
+            # 将 "--- !u!XX &YYY" 替换为 "--- &YYY"
+            content = re.sub(r'^--- !u!\d+ (&?\S*)', r'--- \1', content, flags=re.MULTILINE)
+
+            data = yaml.load(content, Loader=yaml.CLoader)
 
         if cache:
             os.makedirs(os.path.dirname(json_path), exist_ok=True)

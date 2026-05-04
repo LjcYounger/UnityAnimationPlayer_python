@@ -100,8 +100,8 @@ class AnimationTest:
                     # Consider multi-column layout
                     index = (y_click - 100) // 30
                     if 0 <= index < len(self.animation_names):
-                        selected_anim = self.animation_names[index]
-                        return selected_anim
+                        self.selected_anim = self.animation_names[index]
+                        return self.selected_anim
                 
                 if event.type == KEYDOWN:
                     if event.key == K_RETURN and self.animation_names:
@@ -179,7 +179,7 @@ class AnimationTest:
             current_path = self.paths[self.current_path_index] if self.paths else 'None'
             
             info_lines = [
-                f"Animation: {self.animation_names[0] if self.animation_names else 'None'}",
+                f"Animation: {self.selected_anim}",
                 f"Path: {current_path} ({self.current_path_index + 1}/{len(self.paths)})",
                 f"Time: {self.animation_time:.2f}/{self.anim_player.stop_time:.2f}s",
                 f"Speed: {self.animation_speed:.1f}x",
@@ -256,13 +256,13 @@ class AnimationTest:
             print("No animation files to load. Exiting.")
             return
         
-        selected_anim = self.run_file_browser()
-        if not selected_anim:
+        self.selected_anim = self.run_file_browser()
+        if not self.selected_anim:
             pygame.quit()
             return
         
         # Step 2: Load resources
-        if not self.load_assets(os.path.join(ANIM_FOLDER, selected_anim + '.anim')):
+        if not self.load_assets(os.path.join(ANIM_FOLDER, self.selected_anim + '.anim')):
             print("Failed to load assets. Exiting.")
             pygame.quit()
             return
@@ -328,10 +328,10 @@ class AnimationTest:
                     
                     elif event.key == K_f:
                         # Switch to next file
-                        current_index = self.animation_names.index(selected_anim)
+                        current_index = self.animation_names.index(self.selected_anim)
                         next_index = (current_index + 1) % len(self.animation_names)
-                        selected_anim = self.animation_names[next_index]
-                        self.load_assets(os.path.join(ANIM_FOLDER, selected_anim + '.anim'))
+                        self.selected_anim = self.animation_names[next_index]
+                        self.load_assets(os.path.join(ANIM_FOLDER, self.selected_anim + '.anim'))
                     
                     elif event.key == K_ESCAPE:
                         running = False
