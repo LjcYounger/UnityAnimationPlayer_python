@@ -152,7 +152,7 @@ class AnimationPlayer:
         return segments[-1](t)  # Boundary case
 
     def return_default(self,
-                       default_value: float = 0.0,
+                       default_value: float = 0.0, default_scale=1.0,
                        **kwargs: Union[str, bool, Tuple, float]) -> Tuple[Dict[str, Any], bool]:
 
         typed_kwargs = type_kwargs(**kwargs)
@@ -177,9 +177,9 @@ class AnimationPlayer:
         if 'Scale' in ani:
             scale_unit = typed_kwargs['scale_unit']
             if isinstance(scale_unit, tuple):
-                dic['scale'] = tuple(default_value for _ in scale_unit)
+                dic['scale'] = tuple(default_scale for _ in scale_unit)
             else:
-                dic['scale'] = default_value
+                dic['scale'] = default_scale
 
         if 'Float' in ani:
             dic['float'] = default_value

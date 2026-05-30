@@ -4,8 +4,9 @@ from pathlib import Path
 from dataclasses import asdict
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QFrame, QCheckBox, QDoubleSpinBox, QPushButton
+    QLabel, QComboBox, QFrame, QCheckBox, QDoubleSpinBox, QPushButton, QTextEdit
 )
+from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 
 import pyqtgraph as pg
@@ -177,8 +178,10 @@ class InteractivePanel(QWidget):
         self.overall_layout = QVBoxLayout()
 
         self.head_layout = QHBoxLayout()
-        self.kwargs_label = QLabel()
-        self.head_layout.addWidget(self.kwargs_label)
+        self.kwargs_lines = QTextEdit()
+        self.kwargs_lines.setReadOnly(True)
+        self.kwargs_lines.setFixedHeight(self.kwargs_lines.fontMetrics().lineSpacing() * 2 + 14)
+        self.head_layout.addWidget(self.kwargs_lines)
 
         self.overall_layout.addLayout(self.head_layout)
 
@@ -730,7 +733,7 @@ class InteractivePanel(QWidget):
     def update_graph(self):
         if not self.play_kwargs.path: return
 
-        self.kwargs_label.setText(', '.join((f'''{key}={round(value, 3) if type(value) == float 
+        self.kwargs_lines.setText(', '.join((f'''{key}={round(value, 3) if type(value) == float 
                                                         else '"'+value+'"' if type(value) == str 
                                                         else value}''' 
                                                         for key, value in asdict(self.play_kwargs).items() 
@@ -780,6 +783,7 @@ def main():
     with open(Path(__file__).parent / 'style.qss', 'r', encoding='utf-8') as f:
         app.setStyleSheet(f.read())
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyside6())
+    app.setFont(QFont('Consolas', 10))
 
     interactive_panel = InteractivePanel(screen_size=screen.size().toTuple())
     interactive_panel.show()

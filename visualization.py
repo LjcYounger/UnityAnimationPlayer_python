@@ -10,7 +10,7 @@ from unity_animation_player import AnimationPlayer
 def main():
     # 1. Input animation file path
     #anim_path = input("Enter animation file path (e.g., examples/AnimationClip/UIAni_SC_Char_Shake_3.anim): ").strip()
-    anim_path = "examples/AnimationClip/T.anim"
+    anim_path = "examples/AnimationClip/T_noweight.anim"
     
     try:
         player = AnimationPlayer(anim_path)
