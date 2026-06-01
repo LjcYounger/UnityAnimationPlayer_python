@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Dict, Any, Tuple, Union, Optional
+from typing import Callable, Dict, Any, Literal, Tuple, Union, Optional
 from dataclasses import asdict
 
 import numpy as np
@@ -8,12 +8,12 @@ from .parse_yaml import parse_anim
 from .cache_yaml import load_yaml
 
 from .kwargs import PlayKwargs, PlayKwargsDict
-
+from .animation_events import AnimationEvents
 @lru_cache(maxsize=64)
 def load_anim(path: str) -> Tuple[Dict[str, Any], float]:
     anim_json = load_yaml(path)
-    anim, stop_time = parse_anim(anim_json)
-    return anim, stop_time
+    stop_time, anim, events = parse_anim(anim_json)
+    return stop_time, anim, events
 
 def type_kwargs(**kwargs) -> PlayKwargsDict:
 
@@ -23,6 +23,7 @@ def type_kwargs(**kwargs) -> PlayKwargsDict:
     typed_kwargs: PlayKwargsDict = {
         'path': str(merged_kwargs['path']),
         'time_reverse': bool(merged_kwargs['time_reverse']),
+        'event_time_reverse': bool(merged_kwargs['event_time_reverse']),
         'euler_unit': merged_kwargs['euler_unit'],
         'rotation_unit': merged_kwargs['rotation_unit'],
         'position_unit': merged_kwargs['position_unit'],
@@ -37,7 +38,12 @@ def type_kwargs(**kwargs) -> PlayKwargsDict:
 
 class AnimationPlayer:
     def __init__(self, path: str, stop_time: Optional[float] = None):
-        self.anim, self.stop_time = load_anim(path)
+        self.stop_time, self.anim, raw_events = load_anim(path)
+
+        self.events = AnimationEvents(raw_events)
+
+        self.registered_events = {}
+
         if stop_time is not None:
             self.stop_time = stop_time
 
@@ -129,8 +135,17 @@ class AnimationPlayer:
                     dic['float'] = float_val.item() if isinstance(float_val, np.ndarray) else float_val
             else:
                 float_val = 0.0
+
+            events = self.events.get_events(nowtime, time_reverse=typed_kwargs['event_time_reverse'])
+            for event in events:
+                regstered_event = self.registered_events.get(event[0], (lambda: None, ()))
+                parameters = [event[1][arg] for arg in regstered_event[1]]
+                regstered_event[0](*parameters)
+            dic['events'] = events
+
             return dic, True
         else:
+            self.events.reset_events()
             return {}, False
 
     def _get_seg_result(self, segments: Any, t: float) -> float:
@@ -195,3 +210,9 @@ class AnimationPlayer:
         t_end = self.stop_time if t_end is None else t_end
         sample_points = {t: self.play_frame(t, **kwargs)[0] for t in np.arange(t_start, t_end, sample_rate)}
         return sample_points
+    
+    def add_event(self, delay, *kwargs):
+        self.events.add_event(delay, *kwargs)
+
+    def register_event(self, function_name: str, function: Callable, args: Tuple[Literal['data', 'floatParameter', 'intParameter', 'messageOptions'], ...] = ()):
+        self.registered_events[function_name] = (function, args)

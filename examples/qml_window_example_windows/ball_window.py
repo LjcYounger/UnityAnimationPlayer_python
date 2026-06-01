@@ -91,8 +91,10 @@ class ExampleWindow(PopupWindow):
         self.setup_multiple_animations(self.animated_buttons)
 
         self.ball_animation_signal.connect(self.on_ball_signal_received)
-        self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/Hihumi_Original_TSS_Interaction01.anim", stop_time=None, position_ratio=(-24000, -6000), path="bone_root/Bip001")
-        #self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, position_ratio=(9, 4))
+        #self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/Hihumi_Original_TSS_Interaction01.anim", stop_time=None, position_ratio=(-24000, -6000), path="bone_root/Bip001")
+        self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, position_ratio=(9, 4))
+
+        self.ball_animation_player.register_event('eventTriggered', self.event_triggered, ('data',))
 
         self.play_anim()
     
@@ -156,6 +158,8 @@ class ExampleWindow(PopupWindow):
             self.root_obj.disableBallTrail()
             self.root_obj.resetBallTransform()
 
+    def event_triggered(self, data):
+        print(data)
     @Slot()
     def show_child_window(self):
         child_window = ChildWindow()

@@ -5,6 +5,7 @@ from dacite import from_dict
 class PlayKwargsDict(TypedDict, total=False):
     path: str
     time_reverse: bool
+    event_time_reverse: bool
     euler_unit: Union[Literal['x', 'y', 'z'], Tuple[Literal['x', 'y', 'z'], ...]]
     rotation_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]]
     position_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]]
@@ -28,6 +29,7 @@ class PlayKwargs:
     """
     path: str = 'general'
     time_reverse: bool = False
+    event_time_reverse: bool = False
     euler_unit: Union[Literal['x', 'y', 'z'], Tuple[Literal['x', 'y', 'z'], ...]] = 'z'
     rotation_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = 'w'
     position_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')

@@ -17,6 +17,7 @@ class PysideAnimationPlayer(AnimationPlayer):
 
         self.signal = signal
         self.mode = 1  # 0: stop, >0: forward_play, <0: backward_play
+        self.time_reverse = False
         self.t = 0
         self.delta_t = 1/60
         self.timer = QTimer()
@@ -36,14 +37,14 @@ class PysideAnimationPlayer(AnimationPlayer):
 
     def play(self, t: float = None, mode: int | float = None):
         if mode is not None:
-            self.mode = mode
+            self.set_mode(mode)
 
         if t is not None:
-            self.t = t
+            self.set_time(t)
         elif self.mode >= 0:
-            self.t = 0
+            self.set_time(0)
         else:
-            self.t = self.stop_time
+            self.set_time(self.stop_time)
 
         self.timer.start(self.delta_t * 1000)
 
@@ -55,4 +56,5 @@ class PysideAnimationPlayer(AnimationPlayer):
 
     def set_mode(self, mode: int | float):
         self.mode = mode
+        self.parameters['event_time_reverse'] = mode < 0
 
