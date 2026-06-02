@@ -1,4 +1,4 @@
-from ..numba_interpolaion import RationalBezierInterpolation
+from ..numba_interpolation import RationalBezierInterpolation
 import numpy as np
 
 class MixedSegment:

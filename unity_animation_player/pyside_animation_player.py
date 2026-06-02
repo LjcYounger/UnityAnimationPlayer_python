@@ -20,7 +20,7 @@ class PysideAnimationPlayer(AnimationPlayer):
         self.time_reverse = False
         self.t = 0
         self.delta_t = 1/60
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self._pyside_play_frame)
 
     def _pyside_play_frame(self):

@@ -1,0 +1,605 @@
+
+# Unity Animation Player Documentation
+
+## Overview
+
+Unity Animation Player is a Python library for parsing and playing animation files (.anim) exported from the Unity engine. It implements core features of Unity's animation system, including Hermite curve interpolation, rational Bezier curves, and animation event triggering, allowing complete reproduction of Unity animation behavior in Python environments.
+
+## Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [Installation](#installation)
+3. [Core Classes](#core-classes)
+4. [Parameter Configuration](#parameter-configuration)
+5. [Animation Events](#animation-events)
+6. [Advanced Usage](#advanced-usage)
+7. [Performance Optimization](#performance-optimization)
+8. [GUI Integration](#gui-integration)
+9. [Examples](#examples)
+10. [API Reference](#api-reference)
+
+---
+
+## Quick Start
+
+### Basic Usage
+
+```python
+from unity_animation_player import AnimationPlayer
+
+# Load animation file
+player = AnimationPlayer("examples/AnimationClip/T.anim")
+
+# Get animation duration
+print(f"Animation duration: {player.stop_time} seconds")
+
+# Get animation state at specific time
+result, valid = player.play_frame(0.5, path="general")
+if valid:
+    print(f"Position: {result.get('position')}")
+    print(f"Scale: {result.get('scale')}")
+    print(f"Rotation: {result.get('rotation')}")
+```
+
+### Sampling Animation Curves
+
+```python
+# Sample entire animation at 0.01 second intervals
+samples = player.sample_range(sample_rate=0.01)
+
+for time, data in samples.items():
+    position = data.get('position')
+    # Process sampled data...
+```
+
+---
+
+## Installation
+
+### Dependencies
+
+- Python >= 3.8
+- numpy
+- PyYAML (with CLoader)
+- scipy (optional, for some interpolation algorithms)
+- PySide6 (optional, for GUI features)
+- numba (optional, for JIT acceleration)
+
+### Installation Steps
+
+```bash
+pip install numpy pyyaml scipy PySide6 numba
+```
+
+### JIT Configuration
+
+Edit `unity_animation_player/config.py`:
+
+```python
+USE_JIT = True   # Enable numba JIT acceleration
+```
+
+---
+
+## Core Classes
+
+### AnimationPlayer
+
+Main animation playback class responsible for parsing animation files and providing time-based sampling.
+
+**Constructor**
+
+```python
+AnimationPlayer(path: str, stop_time: Optional[float] = None)
+```
+
+| Parameter | Type  | Description                            |
+| --------- | ----- | -------------------------------------- |
+| path      | str   | Path to .anim file                     |
+| stop_time | float | Optional, overrides animation end time |
+
+**Main Methods**
+
+| Method                                                  | Description                           |
+| ------------------------------------------------------- | ------------------------------------- |
+| `play_frame(nowtime, **kwargs)`                       | Get animation state at specified time |
+| `sample_range(sample_rate, t_start, t_end, **kwargs)` | Batch sample animation data           |
+| `register_event(function_name, callback, args)`       | Register animation event callback     |
+| `add_event(delay, **kwargs)`                          | Dynamically add event                 |
+
+**play_frame Return Value**
+
+```python
+# Return format
+(result: dict, valid: bool)
+
+# Possible keys in result
+{
+    'position': (x, y) or single float,
+    'scale': (x, y, z) or single float,
+    'rotation': (x, y, z, w) or single float,
+    'euler': (x, y, z) or single float,
+    'float': float,
+    'events': list,      # Triggered events list
+    'playable': bool     # Whether animation is still playing
+}
+```
+
+### PysideAnimationPlayer
+
+Inherits from AnimationPlayer, integrates PySide6 timer for GUI applications.
+
+**Constructor**
+
+```python
+PysideAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
+```
+
+**Main Methods**
+
+| Method             | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `play(t, mode)`  | Start playback, mode=1 forward, mode=-1 reverse |
+| `stop()`         | Stop playback                                   |
+| `set_mode(mode)` | Set playback speed/direction                    |
+| `set_time(t)`    | Jump to specified time                          |
+
+---
+
+## Parameter Configuration
+
+### PlayKwargs Class
+
+Pass parameters via `**kwargs` to control animation sampling behavior.
+
+```python
+from unity_animation_player import PlayKwargs
+
+kwargs = PlayKwargs()
+kwargs.path = "general"
+kwargs.time_reverse = False
+kwargs.position_unit = ('x', 'y')
+kwargs.position_ratio = 1.0
+kwargs.position_reverse = False
+
+result, valid = player.play_frame(0.5, **vars(kwargs))
+```
+
+### Parameter Reference
+
+| Parameter          | Type        | Default    | Description                                     |
+| ------------------ | ----------- | ---------- | ----------------------------------------------- |
+| path               | str         | 'general'  | Animation path (path field in AnimationClip)    |
+| time_reverse       | bool        | False      | Whether to play time in reverse                 |
+| event_time_reverse | bool        | False      | Whether event triggering follows time direction |
+| euler_unit         | str/tuple   | 'z'        | Euler angle axis selection                      |
+| rotation_unit      | str/tuple   | 'w'        | Rotation axis selection (quaternion)            |
+| position_unit      | str/tuple   | ('x', 'y') | Position axis selection                         |
+| position_reverse   | bool/tuple  | False      | Whether to negate position values               |
+| position_ratio     | float/tuple | 1.0        | Position value scale factor                     |
+| scale_unit         | str/tuple   | ('x', 'y') | Scale axis selection                            |
+| scale_reverse      | bool/tuple  | False      | Whether to negate scale values                  |
+| scale_ratio        | float/tuple | 1.0        | Scale value scale factor                        |
+
+### Compound Parameter Explanation
+
+- **Single Value Mode**: Apply same setting to all axes
+
+  ```python
+  position_reverse = True      # Negate X, Y, Z all
+  position_ratio = 2.0         # Scale X, Y, Z all by 2x
+  ```
+- **Tuple Mode**: Independent settings per axis
+
+  ```python
+  position_unit = ('x', 'y')          # Output only X and Y axes
+  position_reverse = (False, True)    # X unchanged, Y negated
+  position_ratio = (1.0, 2.0)         # X unchanged, Y scaled by 2x
+  ```
+
+---
+
+## Animation Events
+
+Unity animations support triggering events at specific times. This library fully supports this feature.
+
+### Parsing Events
+
+Events in animation files are automatically parsed:
+
+```yaml
+m_Events:
+  - time: 0.41666666
+    functionName: eventTriggered
+    data: EVENT_TRIGGERED
+    floatParameter: 2.8
+    intParameter: 6
+```
+
+### Registering Event Callbacks
+
+```python
+def on_event_triggered(data, float_param, int_param):
+    print(f"Event triggered: {data}, {float_param}, {int_param}")
+
+player.register_event(
+    'eventTriggered', 
+    on_event_triggered, 
+    ('data', 'floatParameter', 'intParameter')
+)
+
+# Events are automatically triggered during playback
+result, valid = player.play_frame(0.42)
+# result['events'] contains triggered event information
+```
+
+### Dynamically Adding Events
+
+```python
+player.add_event(1.0, {
+    'functionName': 'customEvent',
+    'data': 'Hello',
+    'floatParameter': 3.14
+})
+```
+
+---
+
+## Advanced Usage
+
+### Custom Coordinate Transformation
+
+Use `position_ratio` and `position_reverse` parameters for flexible coordinate mapping:
+
+```python
+# Map Unity coordinates to screen coordinates
+# Unity: X range [0, 100], Y range [0, 100]
+# Screen: X range [0, 1920], Y range [0, 1080], Y axis reversed
+
+player.play_frame(0.5, 
+    position_ratio=(19.2, 10.8),  # Scale factors
+    position_reverse=(False, True) # Y axis reversed
+)
+```
+
+### Combining Multiple Transforms
+
+```python
+# Get both position and scale with independent configurations
+result, valid = player.play_frame(0.5,
+    position_unit=('x', 'y'),
+    position_ratio=(2.0, 2.0),
+    scale_unit=('x', 'y'),
+    scale_ratio=1.5
+)
+
+if valid:
+    pos_x, pos_y = result['position']
+    scale_x, scale_y = result['scale']
+```
+
+### Dynamically Switching Animation Paths
+
+```python
+# Get all available paths in animation
+paths = list(player.anim.keys())
+
+# Iterate through all paths
+for path in paths:
+    result, valid = player.play_frame(0.5, path=path)
+    if valid and 'position' in result:
+        print(f"{path}: {result['position']}")
+```
+
+### Custom Interpolation Post-Processing
+
+```python
+# Use sample_range to get full curve, then perform custom processing
+samples = player.sample_range(sample_rate=0.01)
+
+# Calculate velocity (derivative of position over time)
+times = sorted(samples.keys())
+positions = [samples[t]['position'][0] for t in times]
+velocities = np.diff(positions) / np.diff(times)
+
+# Calculate acceleration
+accelerations = np.diff(velocities) / np.diff(times[:-1])
+```
+
+### Multi-Animation Blending
+
+```python
+class AnimationMixer:
+    def __init__(self):
+        self.players = {}
+  
+    def add_animation(self, name, path, weight=1.0):
+        self.players[name] = {
+            'player': AnimationPlayer(path),
+            'weight': weight
+        }
+  
+    def sample(self, time):
+        result = {}
+        for name, data in self.players.items():
+            frame, valid = data['player'].play_frame(time)
+            if valid:
+                weight = data['weight']
+                for key, value in frame.items():
+                    if key not in result:
+                        result[key] = 0
+                    result[key] += value * weight
+        return result
+```
+
+### Real-time Animation Control
+
+```python
+import time
+from unity_animation_player import AnimationPlayer
+
+player = AnimationPlayer("animation.anim")
+start_time = time.time()
+speed = 1.0
+
+while True:
+    elapsed = (time.time() - start_time) * speed
+    if elapsed > player.stop_time:
+        elapsed = elapsed % player.stop_time  # Loop playback
+  
+    result, valid = player.play_frame(elapsed)
+    if valid and 'position' in result:
+        # Update object position
+        update_object_position(result['position'])
+  
+    time.sleep(1/60)  # 60 FPS
+```
+
+### Exporting Animation Curve Data
+
+```python
+import json
+
+def export_animation_curves(player, path, output_file):
+    """Export animation curves to JSON format"""
+    curves = player.anim.get(path, {})
+    export_data = {}
+  
+    for curve_type, segments in curves.items():
+        export_data[curve_type] = []
+        for axis, seg_list in segments.items():
+            points = []
+            for seg in seg_list:
+                # Sample each curve segment
+                t = seg.x_interval[0]
+                while t <= seg.x_interval[1]:
+                    points.append([t, float(seg(t))])
+                    t += 0.01
+            export_data[curve_type].append({
+                'axis': axis,
+                'points': points
+            })
+  
+    with open(output_file, 'w') as f:
+        json.dump(export_data, f, indent=2)
+```
+
+---
+
+## Performance Optimization
+
+### YAML Caching
+
+Parsed animation data is cached to a temporary directory with SHA256 checksum validation, automatically determining cache validity.
+
+Cache location:
+
+- Windows: `%TEMP%/unity_animation_player_python/`
+- Linux/Mac: `/tmp/unity_animation_player_python/`
+
+### JIT Compilation
+
+Core interpolation algorithms use numba JIT compilation for significant performance improvements.
+
+```python
+# config.py
+USE_JIT = True
+```
+
+First call triggers compilation, subsequent calls execute machine code directly.
+
+### PyYAML CLoader
+
+Use LibYAML's C accelerator for YAML parsing:
+
+```python
+data = yaml.load(content, Loader=yaml.CLoader)
+```
+
+### Batch Sampling Optimization
+
+```python
+# Pre-allocate arrays to avoid dynamic resizing
+import numpy as np
+
+def fast_sample_range(player, sample_rate=0.01):
+    n_samples = int(player.stop_time / sample_rate) + 1
+    positions = np.zeros((n_samples, 2))
+    times = np.zeros(n_samples)
+  
+    for i, t in enumerate(np.arange(0, player.stop_time, sample_rate)):
+        result, valid = player.play_frame(t)
+        if valid and 'position' in result:
+            positions[i] = result['position']
+            times[i] = t
+  
+    return times, positions
+```
+
+---
+
+## GUI Integration
+
+### Basic Usage
+
+```python
+from PySide6.QtCore import Signal
+from unity_animation_player import PysideAnimationPlayer
+
+class MyWidget(QWidget):
+    anim_signal = Signal(dict)
+  
+    def __init__(self):
+        super().__init__()
+        self.player = PysideAnimationPlayer(
+            self.anim_signal, 
+            "animation.anim",
+            position_ratio=(2.0, 2.0)
+        )
+        self.anim_signal.connect(self.on_animation_frame)
+      
+    def on_animation_frame(self, data):
+        if data.get('playable'):
+            position = data.get('position')
+            # Update UI element position
+            self.move(*position)
+  
+    def start_animation(self):
+        self.player.play()
+```
+
+### Popup Window Example
+
+```python
+from unity_animation_player import PopupWindow
+
+class MyPopup(PopupWindow):
+    def __init__(self):
+        super().__init__(anim="popup.anim", path="Center/Popup")
+        # Window will automatically play popup animation
+```
+
+---
+
+## Examples
+
+Run `example.py` to view all examples:
+
+```bash
+python example.py
+```
+
+The program will list available examples, including:
+
+| Example Name            | Description                                                               |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `interactive_panel`   | Interactive animation debugging panel with real-time parameter adjustment |
+| `pygame_viewer`       | Pygame-based animation viewer                                             |
+| `pyside_popup_window` | PySide6 popup window animation example                                    |
+| `qml_window`          | QML animation window example (ball animation, button scaling)             |
+
+Select the corresponding number to run.
+
+---
+
+## API Reference
+
+### AnimationPlayer
+
+**Properties**
+
+| Property  | Type            | Description           |
+| --------- | --------------- | --------------------- |
+| anim      | dict            | Parsed animation data |
+| stop_time | float           | Animation end time    |
+| events    | AnimationEvents | Event manager         |
+
+**Methods**
+
+#### play_frame
+
+```python
+play_frame(nowtime: float, **kwargs) -> Tuple[dict, bool]
+```
+
+Get animation state at specified time.
+
+**Parameters**
+
+- `nowtime`: Time point (seconds)
+- `**kwargs`: Playback parameters (see PlayKwargs)
+
+**Returns**
+
+- `dict`: Animation state data
+- `bool`: Whether time point is valid
+
+#### sample_range
+
+```python
+sample_range(sample_rate: float = 0.01, t_start: float = None, t_end: float = None, **kwargs) -> dict
+```
+
+Batch sample animation data.
+
+**Returns**
+
+- `dict`: Dictionary of `{time: animation_data}`
+
+#### register_event
+
+```python
+register_event(function_name: str, function: Callable, args: tuple = ())
+```
+
+Register event callback function.
+
+**Parameters**
+
+- `function_name`: Event name (matches functionName in animation file)
+- `function`: Callback function
+- `args`: Tuple of event parameter names to pass to callback
+
+### PysideAnimationPlayer
+
+**Methods**
+
+| Method                                      | Description            |
+| ------------------------------------------- | ---------------------- |
+| `play(t: float = None, mode: int = None)` | Start playback         |
+| `stop()`                                  | Stop playback          |
+| `set_mode(mode: int                         | float)`                |
+| `set_time(t: float)`                      | Jump to specified time |
+
+---
+
+## File Format Support
+
+### Supported Animation Curve Types
+
+| Type           | Description                  |
+| -------------- | ---------------------------- |
+| PositionCurves | Position curves              |
+| RotationCurves | Rotation curves (quaternion) |
+| EulerCurves    | Euler angle curves           |
+| ScaleCurves    | Scale curves                 |
+| FloatCurves    | Float curves                 |
+
+### Supported Interpolation Types
+
+- Linear interpolation
+- Bezier curves
+- Rational Bezier curves (with weight support)
+- Constant values (handling infinite slopes)
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Contributing
+
+Issues and Pull Requests are welcome.
