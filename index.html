@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>Unity Animation Player Documentation</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/fontawesome.min.css" rel="stylesheet">
+        <link href="css/brands.min.css" rel="stylesheet">
+        <link href="css/solid.min.css" rel="stylesheet">
+        <link href="css/v4-font-face.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">Unity Animation Player Documentation</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#unity-animation-player-documentation" class="nav-link">Unity Animation Player Documentation</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#overview" class="nav-link">Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#table-of-contents" class="nav-link">Table of Contents</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#installation" class="nav-link">Installation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#core-classes" class="nav-link">Core Classes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#parameter-configuration" class="nav-link">Parameter Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#animation-events" class="nav-link">Animation Events</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#advanced-usage" class="nav-link">Advanced Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#performance-optimization" class="nav-link">Performance Optimization</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#gui-integration" class="nav-link">GUI Integration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#examples" class="nav-link">Examples</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#api-reference" class="nav-link">API Reference</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#file-format-support" class="nav-link">File Format Support</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#license" class="nav-link">License</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#contributing" class="nav-link">Contributing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="unity-animation-player-documentation">Unity Animation Player Documentation</h1>
+<h2 id="overview">Overview</h2>
+<p>Unity Animation Player is a Python library for parsing and playing animation files (.anim) exported from the Unity engine. It implements core features of Unity's animation system, including Hermite curve interpolation, rational Bezier curves, and animation event triggering, allowing complete reproduction of Unity animation behavior in Python environments.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#core-classes">Core Classes</a></li>
+<li><a href="#parameter-configuration">Parameter Configuration</a></li>
+<li><a href="#animation-events">Animation Events</a></li>
+<li><a href="#advanced-usage">Advanced Usage</a></li>
+<li><a href="#performance-optimization">Performance Optimization</a></li>
+<li><a href="#gui-integration">GUI Integration</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#api-reference">API Reference</a></li>
+</ol>
+<hr />
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="basic-usage">Basic Usage</h3>
+<pre><code class="language-python">from unity_animation_player import AnimationPlayer
+
+# Load animation file
+player = AnimationPlayer(&quot;examples/AnimationClip/T.anim&quot;)
+
+# Get animation duration
+print(f&quot;Animation duration: {player.stop_time} seconds&quot;)
+
+# Get animation state at specific time
+result, valid = player.play_frame(0.5, path=&quot;general&quot;)
+if valid:
+    print(f&quot;Position: {result.get('position')}&quot;)
+    print(f&quot;Scale: {result.get('scale')}&quot;)
+    print(f&quot;Rotation: {result.get('rotation')}&quot;)
+</code></pre>
+<h3 id="sampling-animation-curves">Sampling Animation Curves</h3>
+<pre><code class="language-python"># Sample entire animation at 0.01 second intervals
+samples = player.sample_range(sample_rate=0.01)
+
+for time, data in samples.items():
+    position = data.get('position')
+    # Process sampled data...
+</code></pre>
+<hr />
+<h2 id="installation">Installation</h2>
+<h3 id="dependencies">Dependencies</h3>
+<ul>
+<li>Python &gt;= 3.8</li>
+<li>numpy</li>
+<li>PyYAML (with CLoader)</li>
+<li>scipy (optional, for some interpolation algorithms)</li>
+<li>PySide6 (optional, for GUI features)</li>
+<li>numba (optional, for JIT acceleration)</li>
+</ul>
+<h3 id="installation-steps">Installation Steps</h3>
+<pre><code class="language-bash">pip install numpy pyyaml scipy PySide6 numba
+</code></pre>
+<h3 id="jit-configuration">JIT Configuration</h3>
+<p>Edit <code>unity_animation_player/config.py</code>:</p>
+<pre><code class="language-python">USE_JIT = True   # Enable numba JIT acceleration
+</code></pre>
+<hr />
+<h2 id="core-classes">Core Classes</h2>
+<h3 id="animationplayer">AnimationPlayer</h3>
+<p>Main animation playback class responsible for parsing animation files and providing time-based sampling.</p>
+<p><strong>Constructor</strong></p>
+<pre><code class="language-python">AnimationPlayer(path: str, stop_time: Optional[float] = None)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td>str</td>
+<td>Path to .anim file</td>
+</tr>
+<tr>
+<td>stop_time</td>
+<td>float</td>
+<td>Optional, overrides animation end time</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Main Methods</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>play_frame(nowtime, **kwargs)</code></td>
+<td>Get animation state at specified time</td>
+</tr>
+<tr>
+<td><code>sample_range(sample_rate, t_start, t_end, **kwargs)</code></td>
+<td>Batch sample animation data</td>
+</tr>
+<tr>
+<td><code>register_event(function_name, callback, args)</code></td>
+<td>Register animation event callback</td>
+</tr>
+<tr>
+<td><code>add_event(delay, **kwargs)</code></td>
+<td>Dynamically add event</td>
+</tr>
+</tbody>
+</table>
+<p><strong>play_frame Return Value</strong></p>
+<pre><code class="language-python"># Return format
+(result: dict, valid: bool)
+
+# Possible keys in result
+{
+    'position': (x, y) or single float,
+    'scale': (x, y, z) or single float,
+    'rotation': (x, y, z, w) or single float,
+    'euler': (x, y, z) or single float,
+    'float': float,
+    'events': list,      # Triggered events list
+    'playable': bool     # Whether animation is still playing
+}
+</code></pre>
+<h3 id="pysideanimationplayer">PysideAnimationPlayer</h3>
+<p>Inherits from AnimationPlayer, integrates PySide6 timer for GUI applications.</p>
+<p><strong>Constructor</strong></p>
+<pre><code class="language-python">PysideAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
+</code></pre>
+<p><strong>Main Methods</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>play(t, mode)</code></td>
+<td>Start playback, mode=1 forward, mode=-1 reverse</td>
+</tr>
+<tr>
+<td><code>stop()</code></td>
+<td>Stop playback</td>
+</tr>
+<tr>
+<td><code>set_mode(mode)</code></td>
+<td>Set playback speed/direction</td>
+</tr>
+<tr>
+<td><code>set_time(t)</code></td>
+<td>Jump to specified time</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parameter-configuration">Parameter Configuration</h2>
+<h3 id="playkwargs-class">PlayKwargs Class</h3>
+<p>Pass parameters via <code>**kwargs</code> to control animation sampling behavior.</p>
+<pre><code class="language-python">from unity_animation_player import PlayKwargs
+
+kwargs = PlayKwargs()
+kwargs.path = &quot;general&quot;
+kwargs.time_reverse = False
+kwargs.position_unit = ('x', 'y')
+kwargs.position_ratio = 1.0
+kwargs.position_reverse = False
+
+result, valid = player.play_frame(0.5, **vars(kwargs))
+</code></pre>
+<h3 id="parameter-reference">Parameter Reference</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td>str</td>
+<td>'general'</td>
+<td>Animation path (path field in AnimationClip)</td>
+</tr>
+<tr>
+<td>time_reverse</td>
+<td>bool</td>
+<td>False</td>
+<td>Whether to play time in reverse</td>
+</tr>
+<tr>
+<td>event_time_reverse</td>
+<td>bool</td>
+<td>False</td>
+<td>Whether event triggering follows time direction</td>
+</tr>
+<tr>
+<td>euler_unit</td>
+<td>str/tuple</td>
+<td>'z'</td>
+<td>Euler angle axis selection</td>
+</tr>
+<tr>
+<td>rotation_unit</td>
+<td>str/tuple</td>
+<td>'w'</td>
+<td>Rotation axis selection (quaternion)</td>
+</tr>
+<tr>
+<td>position_unit</td>
+<td>str/tuple</td>
+<td>('x', 'y')</td>
+<td>Position axis selection</td>
+</tr>
+<tr>
+<td>position_reverse</td>
+<td>bool/tuple</td>
+<td>False</td>
+<td>Whether to negate position values</td>
+</tr>
+<tr>
+<td>position_ratio</td>
+<td>float/tuple</td>
+<td>1.0</td>
+<td>Position value scale factor</td>
+</tr>
+<tr>
+<td>scale_unit</td>
+<td>str/tuple</td>
+<td>('x', 'y')</td>
+<td>Scale axis selection</td>
+</tr>
+<tr>
+<td>scale_reverse</td>
+<td>bool/tuple</td>
+<td>False</td>
+<td>Whether to negate scale values</td>
+</tr>
+<tr>
+<td>scale_ratio</td>
+<td>float/tuple</td>
+<td>1.0</td>
+<td>Scale value scale factor</td>
+</tr>
+</tbody>
+</table>
+<h3 id="compound-parameter-explanation">Compound Parameter Explanation</h3>
+<ul>
+<li><strong>Single Value Mode</strong>: Apply same setting to all axes</li>
+</ul>
+<p><code>python
+  position_reverse = True      # Negate X, Y, Z all
+  position_ratio = 2.0         # Scale X, Y, Z all by 2x</code>
+- <strong>Tuple Mode</strong>: Independent settings per axis</p>
+<p><code>python
+  position_unit = ('x', 'y')          # Output only X and Y axes
+  position_reverse = (False, True)    # X unchanged, Y negated
+  position_ratio = (1.0, 2.0)         # X unchanged, Y scaled by 2x</code></p>
+<hr />
+<h2 id="animation-events">Animation Events</h2>
+<p>Unity animations support triggering events at specific times. This library fully supports this feature.</p>
+<h3 id="parsing-events">Parsing Events</h3>
+<p>Events in animation files are automatically parsed:</p>
+<pre><code class="language-yaml">m_Events:
+  - time: 0.41666666
+    functionName: eventTriggered
+    data: EVENT_TRIGGERED
+    floatParameter: 2.8
+    intParameter: 6
+</code></pre>
+<h3 id="registering-event-callbacks">Registering Event Callbacks</h3>
+<pre><code class="language-python">def on_event_triggered(data, float_param, int_param):
+    print(f&quot;Event triggered: {data}, {float_param}, {int_param}&quot;)
+
+player.register_event(
+    'eventTriggered', 
+    on_event_triggered, 
+    ('data', 'floatParameter', 'intParameter')
+)
+
+# Events are automatically triggered during playback
+result, valid = player.play_frame(0.42)
+# result['events'] contains triggered event information
+</code></pre>
+<h3 id="dynamically-adding-events">Dynamically Adding Events</h3>
+<pre><code class="language-python">player.add_event(1.0, {
+    'functionName': 'customEvent',
+    'data': 'Hello',
+    'floatParameter': 3.14
+})
+</code></pre>
+<hr />
+<h2 id="advanced-usage">Advanced Usage</h2>
+<h3 id="custom-coordinate-transformation">Custom Coordinate Transformation</h3>
+<p>Use <code>position_ratio</code> and <code>position_reverse</code> parameters for flexible coordinate mapping:</p>
+<pre><code class="language-python"># Map Unity coordinates to screen coordinates
+# Unity: X range [0, 100], Y range [0, 100]
+# Screen: X range [0, 1920], Y range [0, 1080], Y axis reversed
+
+player.play_frame(0.5, 
+    position_ratio=(19.2, 10.8),  # Scale factors
+    position_reverse=(False, True) # Y axis reversed
+)
+</code></pre>
+<h3 id="combining-multiple-transforms">Combining Multiple Transforms</h3>
+<pre><code class="language-python"># Get both position and scale with independent configurations
+result, valid = player.play_frame(0.5,
+    position_unit=('x', 'y'),
+    position_ratio=(2.0, 2.0),
+    scale_unit=('x', 'y'),
+    scale_ratio=1.5
+)
+
+if valid:
+    pos_x, pos_y = result['position']
+    scale_x, scale_y = result['scale']
+</code></pre>
+<h3 id="dynamically-switching-animation-paths">Dynamically Switching Animation Paths</h3>
+<pre><code class="language-python"># Get all available paths in animation
+paths = list(player.anim.keys())
+
+# Iterate through all paths
+for path in paths:
+    result, valid = player.play_frame(0.5, path=path)
+    if valid and 'position' in result:
+        print(f&quot;{path}: {result['position']}&quot;)
+</code></pre>
+<h3 id="custom-interpolation-post-processing">Custom Interpolation Post-Processing</h3>
+<pre><code class="language-python"># Use sample_range to get full curve, then perform custom processing
+samples = player.sample_range(sample_rate=0.01)
+
+# Calculate velocity (derivative of position over time)
+times = sorted(samples.keys())
+positions = [samples[t]['position'][0] for t in times]
+velocities = np.diff(positions) / np.diff(times)
+
+# Calculate acceleration
+accelerations = np.diff(velocities) / np.diff(times[:-1])
+</code></pre>
+<h3 id="multi-animation-blending">Multi-Animation Blending</h3>
+<pre><code class="language-python">class AnimationMixer:
+    def __init__(self):
+        self.players = {}
+
+    def add_animation(self, name, path, weight=1.0):
+        self.players[name] = {
+            'player': AnimationPlayer(path),
+            'weight': weight
+        }
+
+    def sample(self, time):
+        result = {}
+        for name, data in self.players.items():
+            frame, valid = data['player'].play_frame(time)
+            if valid:
+                weight = data['weight']
+                for key, value in frame.items():
+                    if key not in result:
+                        result[key] = 0
+                    result[key] += value * weight
+        return result
+</code></pre>
+<h3 id="real-time-animation-control">Real-time Animation Control</h3>
+<pre><code class="language-python">import time
+from unity_animation_player import AnimationPlayer
+
+player = AnimationPlayer(&quot;animation.anim&quot;)
+start_time = time.time()
+speed = 1.0
+
+while True:
+    elapsed = (time.time() - start_time) * speed
+    if elapsed &gt; player.stop_time:
+        elapsed = elapsed % player.stop_time  # Loop playback
+
+    result, valid = player.play_frame(elapsed)
+    if valid and 'position' in result:
+        # Update object position
+        update_object_position(result['position'])
+
+    time.sleep(1/60)  # 60 FPS
+</code></pre>
+<h3 id="exporting-animation-curve-data">Exporting Animation Curve Data</h3>
+<pre><code class="language-python">import json
+
+def export_animation_curves(player, path, output_file):
+    &quot;&quot;&quot;Export animation curves to JSON format&quot;&quot;&quot;
+    curves = player.anim.get(path, {})
+    export_data = {}
+
+    for curve_type, segments in curves.items():
+        export_data[curve_type] = []
+        for axis, seg_list in segments.items():
+            points = []
+            for seg in seg_list:
+                # Sample each curve segment
+                t = seg.x_interval[0]
+                while t &lt;= seg.x_interval[1]:
+                    points.append([t, float(seg(t))])
+                    t += 0.01
+            export_data[curve_type].append({
+                'axis': axis,
+                'points': points
+            })
+
+    with open(output_file, 'w') as f:
+        json.dump(export_data, f, indent=2)
+</code></pre>
+<hr />
+<h2 id="performance-optimization">Performance Optimization</h2>
+<h3 id="yaml-caching">YAML Caching</h3>
+<p>Parsed animation data is cached to a temporary directory with SHA256 checksum validation, automatically determining cache validity.</p>
+<p>Cache location:</p>
+<ul>
+<li>Windows: <code>%TEMP%/unity_animation_player_python/</code></li>
+<li>Linux/Mac: <code>/tmp/unity_animation_player_python/</code></li>
+</ul>
+<h3 id="jit-compilation">JIT Compilation</h3>
+<p>Core interpolation algorithms use numba JIT compilation for significant performance improvements.</p>
+<pre><code class="language-python"># config.py
+USE_JIT = True
+</code></pre>
+<p>First call triggers compilation, subsequent calls execute machine code directly.</p>
+<h3 id="pyyaml-cloader">PyYAML CLoader</h3>
+<p>Use LibYAML's C accelerator for YAML parsing:</p>
+<pre><code class="language-python">data = yaml.load(content, Loader=yaml.CLoader)
+</code></pre>
+<h3 id="batch-sampling-optimization">Batch Sampling Optimization</h3>
+<pre><code class="language-python"># Pre-allocate arrays to avoid dynamic resizing
+import numpy as np
+
+def fast_sample_range(player, sample_rate=0.01):
+    n_samples = int(player.stop_time / sample_rate) + 1
+    positions = np.zeros((n_samples, 2))
+    times = np.zeros(n_samples)
+
+    for i, t in enumerate(np.arange(0, player.stop_time, sample_rate)):
+        result, valid = player.play_frame(t)
+        if valid and 'position' in result:
+            positions[i] = result['position']
+            times[i] = t
+
+    return times, positions
+</code></pre>
+<hr />
+<h2 id="gui-integration">GUI Integration</h2>
+<h3 id="basic-usage_1">Basic Usage</h3>
+<pre><code class="language-python">from PySide6.QtCore import Signal
+from unity_animation_player import PysideAnimationPlayer
+
+class MyWidget(QWidget):
+    anim_signal = Signal(dict)
+
+    def __init__(self):
+        super().__init__()
+        self.player = PysideAnimationPlayer(
+            self.anim_signal, 
+            &quot;animation.anim&quot;,
+            position_ratio=(2.0, 2.0)
+        )
+        self.anim_signal.connect(self.on_animation_frame)
+
+    def on_animation_frame(self, data):
+        if data.get('playable'):
+            position = data.get('position')
+            # Update UI element position
+            self.move(*position)
+
+    def start_animation(self):
+        self.player.play()
+</code></pre>
+<h3 id="popup-window-example">Popup Window Example</h3>
+<pre><code class="language-python">from unity_animation_player import PopupWindow
+
+class MyPopup(PopupWindow):
+    def __init__(self):
+        super().__init__(anim=&quot;popup.anim&quot;, path=&quot;Center/Popup&quot;)
+        # Window will automatically play popup animation
+</code></pre>
+<hr />
+<h2 id="examples">Examples</h2>
+<p>Run <code>example.py</code> to view all examples:</p>
+<pre><code class="language-bash">python example.py
+</code></pre>
+<p>The program will list available examples, including:</p>
+<table>
+<thead>
+<tr>
+<th>Example Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>interactive_panel</code></td>
+<td>Interactive animation debugging panel with real-time parameter adjustment</td>
+</tr>
+<tr>
+<td><code>pygame_viewer</code></td>
+<td>Pygame-based animation viewer</td>
+</tr>
+<tr>
+<td><code>pyside_popup_window</code></td>
+<td>PySide6 popup window animation example</td>
+</tr>
+<tr>
+<td><code>qml_window</code></td>
+<td>QML animation window example (ball animation, button scaling)</td>
+</tr>
+</tbody>
+</table>
+<p>Select the corresponding number to run.</p>
+<hr />
+<h2 id="api-reference">API Reference</h2>
+<h3 id="animationplayer_1">AnimationPlayer</h3>
+<p><strong>Properties</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>anim</td>
+<td>dict</td>
+<td>Parsed animation data</td>
+</tr>
+<tr>
+<td>stop_time</td>
+<td>float</td>
+<td>Animation end time</td>
+</tr>
+<tr>
+<td>events</td>
+<td>AnimationEvents</td>
+<td>Event manager</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods</strong></p>
+<h4 id="play_frame">play_frame</h4>
+<pre><code class="language-python">play_frame(nowtime: float, **kwargs) -&gt; Tuple[dict, bool]
+</code></pre>
+<p>Get animation state at specified time.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>nowtime</code>: Time point (seconds)</li>
+<li><code>**kwargs</code>: Playback parameters (see PlayKwargs)</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><code>dict</code>: Animation state data</li>
+<li><code>bool</code>: Whether time point is valid</li>
+</ul>
+<h4 id="sample_range">sample_range</h4>
+<pre><code class="language-python">sample_range(sample_rate: float = 0.01, t_start: float = None, t_end: float = None, **kwargs) -&gt; dict
+</code></pre>
+<p>Batch sample animation data.</p>
+<p><strong>Returns</strong></p>
+<ul>
+<li><code>dict</code>: Dictionary of <code>{time: animation_data}</code></li>
+</ul>
+<h4 id="register_event">register_event</h4>
+<pre><code class="language-python">register_event(function_name: str, function: Callable, args: tuple = ())
+</code></pre>
+<p>Register event callback function.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>function_name</code>: Event name (matches functionName in animation file)</li>
+<li><code>function</code>: Callback function</li>
+<li><code>args</code>: Tuple of event parameter names to pass to callback</li>
+</ul>
+<h3 id="pysideanimationplayer_1">PysideAnimationPlayer</h3>
+<p><strong>Methods</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>play(t: float = None, mode: int = None)</code></td>
+<td>Start playback</td>
+</tr>
+<tr>
+<td><code>stop()</code></td>
+<td>Stop playback</td>
+</tr>
+<tr>
+<td><code>set_mode(mode: int                         | float)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>set_time(t: float)</code></td>
+<td>Jump to specified time</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="file-format-support">File Format Support</h2>
+<h3 id="supported-animation-curve-types">Supported Animation Curve Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PositionCurves</td>
+<td>Position curves</td>
+</tr>
+<tr>
+<td>RotationCurves</td>
+<td>Rotation curves (quaternion)</td>
+</tr>
+<tr>
+<td>EulerCurves</td>
+<td>Euler angle curves</td>
+</tr>
+<tr>
+<td>ScaleCurves</td>
+<td>Scale curves</td>
+</tr>
+<tr>
+<td>FloatCurves</td>
+<td>Float curves</td>
+</tr>
+</tbody>
+</table>
+<h3 id="supported-interpolation-types">Supported Interpolation Types</h3>
+<ul>
+<li>Linear interpolation</li>
+<li>Bezier curves</li>
+<li>Rational Bezier curves (with weight support)</li>
+<li>Constant values (handling infinite slopes)</li>
+</ul>
+<hr />
+<h2 id="license">License</h2>
+<p>MIT License</p>
+<hr />
+<h2 id="contributing">Contributing</h2>
+<p>Issues and Pull Requests are welcome.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js"></script>
+        <script src="search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2026-06-02 14:42:28.973725+00:00
+-->
