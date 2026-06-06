@@ -1,7 +1,7 @@
 from .animation_player import AnimationPlayer
 from .pyside_animation_player import PysideAnimationPlayer
 from .animation_events import AnimationEvents
-from .kwargs import PlayKwargs, PlayKwargsDict, type_kwargs
+from .kwargs import PlayKwargsDict, type_kwargs
 from .numba_optimized.rational_bezier_interpolator import RationalBezierInterpolation
 from .config import USE_JIT
 
@@ -14,7 +14,6 @@ __all__ = [
     "AnimationPlayer",
     "PysideAnimationPlayer",
     "AnimationEvents",
-    "PlayKwargs",
     "PlayKwargsDict",
     "type_kwargs"
 ]

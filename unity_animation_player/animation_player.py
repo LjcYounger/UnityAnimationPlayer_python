@@ -7,7 +7,7 @@ import numpy as np
 from .parse_yaml import parse_anim
 from .cache_yaml import load_yaml
 
-from .kwargs import PlayKwargs, PlayKwargsDict, player_type_kwargs
+from .kwargs import type_kwargs
 from .animation_events import AnimationEvents
 from .numba_optimized.binary_search import binary_search_segment_index
 @lru_cache(maxsize=64)
@@ -32,7 +32,7 @@ class AnimationPlayer:
                    nowtime: float,
                    **kwargs: Union[str, bool, Tuple, float]) -> Tuple[Dict[str, Any], bool]:
         
-        typed_kwargs = player_type_kwargs(**kwargs)
+        typed_kwargs = type_kwargs(**kwargs)
 
         nowtime1 = nowtime
         if typed_kwargs['time_reverse']:
@@ -141,7 +141,7 @@ class AnimationPlayer:
                        default_value: float = 0.0, default_scale=1.0,
                        **kwargs: Union[str, bool, Tuple, float]) -> Tuple[Dict[str, Any], bool]:
 
-        typed_kwargs = player_type_kwargs(**kwargs)
+        typed_kwargs = type_kwargs(**kwargs)
 
         dic: Dict[str, Any] = {}
         ani = self.anim[typed_kwargs['path']]

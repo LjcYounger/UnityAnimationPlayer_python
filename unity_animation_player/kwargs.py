@@ -1,6 +1,4 @@
 from typing import Tuple, Literal, Union, TypedDict
-from dataclasses import dataclass, asdict
-from dacite import from_dict
 
 class PlayKwargsDict(TypedDict, total=False):
     path: str
@@ -16,8 +14,7 @@ class PlayKwargsDict(TypedDict, total=False):
     scale_ratio: Union[float, Tuple[float, ...]]
 
 
-@dataclass
-class PlayKwargs:
+def type_kwargs(**kwargs) -> PlayKwargsDict:
     """
     Describes the optional keyword arguments for the play method.
     total=False indicates that all fields are optional, which aligns with the characteristics of **kwargs.
@@ -27,41 +24,31 @@ class PlayKwargs:
     - If single value, apply to all coordinates
     - If tuple, apply sequentially to corresponding coordinates
     """
-    path: str = 'general'
-    time_reverse: bool = False
-    event_time_reverse: bool = False
-    euler_unit: Union[Literal['x', 'y', 'z'], Tuple[Literal['x', 'y', 'z'], ...]] = 'z'
-    rotation_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = 'w'
-    position_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')
-    position_reverse: Union[bool, Tuple[bool, ...]] = False
-    position_ratio: Union[float, Tuple[float, ...]] = 1.0
-    scale_unit: Union[Literal['x', 'y', 'z', 'w'], Tuple[Literal['x', 'y', 'z', 'w'], ...]] = ('x', 'y')
-    scale_reverse: Union[bool, Tuple[bool, ...]] = False
-    scale_ratio: Union[float, Tuple[float, ...]] = 1.0
-
-
-def type_kwargs(**kwargs) -> PlayKwargsDict:
-
-    default_kwargs = PlayKwargs()
-    merged_kwargs = {**asdict(default_kwargs), **kwargs}
-    return asdict(from_dict(PlayKwargs, merged_kwargs))
-
-def player_type_kwargs(**kwargs) -> PlayKwargsDict:
-
-    default_kwargs = PlayKwargs()
-    merged_kwargs = {**asdict(default_kwargs), **kwargs}
-        
+    # 默认值定义
+    default_path = 'general'
+    default_time_reverse = False
+    default_event_time_reverse = False
+    default_euler_unit = 'z'
+    default_rotation_unit = 'w'
+    default_position_unit = ('x', 'y')
+    default_position_reverse = False
+    default_position_ratio = 1.0
+    default_scale_unit = ('x', 'y')
+    default_scale_reverse = False
+    default_scale_ratio = 1.0
+    
+    # 手动合并 kwargs 与默认值，避免 dataclass 和 dacite 的转换开销
     typed_kwargs: PlayKwargsDict = {
-        'path': str(merged_kwargs['path']),
-        'time_reverse': bool(merged_kwargs['time_reverse']),
-        'event_time_reverse': bool(merged_kwargs['event_time_reverse']),
-        'euler_unit': merged_kwargs['euler_unit'],
-        'rotation_unit': merged_kwargs['rotation_unit'],
-        'position_unit': merged_kwargs['position_unit'],
-        'position_reverse': merged_kwargs['position_reverse'],
-        'position_ratio': merged_kwargs['position_ratio'],
-        'scale_unit': merged_kwargs['scale_unit'],
-        'scale_reverse': merged_kwargs['scale_reverse'],
-        'scale_ratio': merged_kwargs['scale_ratio']
+        'path': str(kwargs.get('path', default_path)),
+        'time_reverse': bool(kwargs.get('time_reverse', default_time_reverse)),
+        'event_time_reverse': bool(kwargs.get('event_time_reverse', default_event_time_reverse)),
+        'euler_unit': kwargs.get('euler_unit', default_euler_unit),
+        'rotation_unit': kwargs.get('rotation_unit', default_rotation_unit),
+        'position_unit': kwargs.get('position_unit', default_position_unit),
+        'position_reverse': kwargs.get('position_reverse', default_position_reverse),
+        'position_ratio': kwargs.get('position_ratio', default_position_ratio),
+        'scale_unit': kwargs.get('scale_unit', default_scale_unit),
+        'scale_reverse': kwargs.get('scale_reverse', default_scale_reverse),
+        'scale_ratio': kwargs.get('scale_ratio', default_scale_ratio)
     }
     return typed_kwargs
