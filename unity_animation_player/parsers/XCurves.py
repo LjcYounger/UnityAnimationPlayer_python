@@ -1,4 +1,4 @@
-from ..numba_interpolation import RationalBezierInterpolation
+from ..numba_optimized.rational_bezier_interpolator import RationalBezierInterpolation
 import numpy as np
 
 class MixedSegment:
@@ -39,37 +39,6 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
     # inf will remain as np.inf
     in_sl = np.array(in_sl_raw, dtype=float)
     out_sl = np.array(out_sl_raw, dtype=float)
-
-    """
-    for i in range(len(weightedMode)):
-        mode = int(weightedMode[i])
-        # Create finite value mask
-        finite_in = np.isfinite(in_sl[i])
-        finite_out = np.isfinite(out_sl[i])
-        
-        
-        if mode == 0:  # Neither in_sl nor out_sl multiplied by weights
-            # Only clip finite values, don't multiply by weights
-            if finite_in:
-                in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
-            if finite_out:
-                out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
-        elif mode == 1:  # in_sl multiplied, out_sl not multiplied
-            if finite_in:
-                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)  # NOT ACCURATE
-            if finite_out:
-                out_sl[i] = np.clip(out_sl[i], -1e8, 1e8)
-        elif mode == 2:  # Both in_sl and out_sl multiplied
-            if finite_in:
-                in_sl[i] = np.clip(in_sl[i] * in_weights[i], -1e8, 1e8)  # NOT ACCURATE
-            if finite_out:
-                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)  # NOT ACCURATE
-        elif mode == 3:  # in_sl not multiplied, out_sl multiplied
-            if finite_in:
-                in_sl[i] = np.clip(in_sl[i], -1e8, 1e8)
-            if finite_out:
-                out_sl[i] = np.clip(out_sl[i] * out_weights[i], -1e8, 1e8)  # NOT ACCURATE
-    """
 
     tangentMode = np.array(tangentMode, dtype=float)
 
@@ -146,6 +115,8 @@ def _parse_m_Curve(m_Curve_list):
 
     max_time = max(parameter_dict["time"])
 
+    time_nodes = np.array(parameter_dict["time"])
+
     if isinstance(parameter_dict["value"], dict):
         interpolation_list = {}
         for comp in parameter_dict["value"].keys():
@@ -173,7 +144,7 @@ def _parse_m_Curve(m_Curve_list):
         )
         interpolation_list = piecewise_hermite(*args)
 
-    return interpolation_list, max_time
+    return interpolation_list, max_time, time_nodes
 
 
 def _parse_curve(m_XCurves):
@@ -187,8 +158,8 @@ def _parse_curve(m_XCurves):
             general_times += 1
         else:
             path = str(path)
-        parse_output, max_time = _parse_m_Curve(m_XCurve["curve"]["m_Curve"])
-        output[path] = parse_output
+        interpolation_list, max_time, time_nodes = _parse_m_Curve(m_XCurve["curve"]["m_Curve"])
+        output[path] = (interpolation_list, time_nodes)
         max_times.append(max_time)
     max_time_ = max(max_times) if max_times else 0
     return output, max_time_
@@ -201,10 +172,10 @@ def parse(anim_dict):
         m_XCurves_list = anim_dict[m_XCurves]
         if m_XCurves_list:
             m_XCurves_dict, max_time = _parse_curve(m_XCurves_list)
-            for path_key, m_Curve_interpolation in m_XCurves_dict.items():
+            for path_key, m_Curve_interpolation_time_nodes in m_XCurves_dict.items():
                 if path_key not in paths:
                     paths[path_key] = {}
-                paths[path_key][m_XCurves[2:-6]] = m_Curve_interpolation
+                paths[path_key][m_XCurves[2:-6]] = m_Curve_interpolation_time_nodes
             if stop_time == 1 and type(stop_time) == int:
                 stop_time = max_time
     return stop_time, paths

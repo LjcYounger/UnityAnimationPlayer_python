@@ -7,8 +7,9 @@ import numpy as np
 from .parse_yaml import parse_anim
 from .cache_yaml import load_yaml
 
-from .kwargs import PlayKwargs, PlayKwargsDict, type_kwargs
+from .kwargs import PlayKwargs, PlayKwargsDict, player_type_kwargs
 from .animation_events import AnimationEvents
+from .numba_optimized.binary_search import binary_search_segment_index
 @lru_cache(maxsize=64)
 def load_anim(path: str) -> Tuple[Dict[str, Any], float]:
     anim_json = load_yaml(path)
@@ -31,7 +32,7 @@ class AnimationPlayer:
                    nowtime: float,
                    **kwargs: Union[str, bool, Tuple, float]) -> Tuple[Dict[str, Any], bool]:
         
-        typed_kwargs = type_kwargs(**kwargs)
+        typed_kwargs = player_type_kwargs(**kwargs)
 
         nowtime1 = nowtime
         if typed_kwargs['time_reverse']:
@@ -40,27 +41,27 @@ class AnimationPlayer:
             dic: Dict[str, Any] = {}
             ani = self.anim[typed_kwargs['path']]
             if 'Euler' in ani:
-                e = ani.get('Euler')
+                e, time_nodes = ani.get('Euler')
 
                 euler_unit = typed_kwargs['euler_unit']
                 if isinstance(euler_unit, tuple):
-                    euler = tuple(self._get_seg_result(e[unit], nowtime) for unit in euler_unit)
+                    euler = tuple(self._get_seg_result(e[unit], nowtime, time_nodes) for unit in euler_unit)
                 else:
-                    euler = self._get_seg_result(e[euler_unit], nowtime)
+                    euler = self._get_seg_result(e[euler_unit], nowtime, time_nodes)
                 dic['euler'] = euler
 
             if 'Rotation' in ani:
-                r = ani.get('Rotation')
+                r, time_nodes = ani.get('Rotation')
 
                 rotation_unit = typed_kwargs['rotation_unit']
                 if isinstance(rotation_unit, tuple):
-                    rotation = tuple(self._get_seg_result(r[unit], nowtime) for unit in rotation_unit)
+                    rotation = tuple(self._get_seg_result(r[unit], nowtime, time_nodes) for unit in rotation_unit)
                 else:
-                    rotation = self._get_seg_result(r[rotation_unit], nowtime)
+                    rotation = self._get_seg_result(r[rotation_unit], nowtime, time_nodes)
                 dic['rotation'] = rotation
 
             if 'Position' in ani:
-                p = ani.get('Position')
+                p, time_nodes = ani.get('Position')
 
                 position_unit = typed_kwargs['position_unit']
                 position_reverse = typed_kwargs['position_reverse']
@@ -73,7 +74,7 @@ class AnimationPlayer:
 
                         reverse_val = position_reverse[i] if isinstance(position_reverse, tuple) else position_reverse
                         ratio_val = position_ratio[i] if isinstance(position_ratio, tuple) else position_ratio
-                        pos_val = self._get_seg_result(p[unit], nowtime) * ratio_val
+                        pos_val = self._get_seg_result(p[unit], nowtime, time_nodes) * ratio_val
                         pos_val = -pos_val if reverse_val else pos_val
                         position_values.append(pos_val)
                     dic['position'] = tuple(position_values)
@@ -81,12 +82,12 @@ class AnimationPlayer:
 
                     reverse_val = position_reverse if isinstance(position_reverse, bool) else position_reverse[0]
                     ratio_val = position_ratio if isinstance(position_ratio, (int, float)) else position_ratio[0]
-                    pos_val = self._get_seg_result(p[position_unit], nowtime) * ratio_val
+                    pos_val = self._get_seg_result(p[position_unit], nowtime, time_nodes) * ratio_val
                     pos_val = -pos_val if reverse_val else pos_val
                     dic['position'] = pos_val
 
             if 'Scale' in ani:
-                s = ani.get('Scale')
+                s, time_nodes = ani.get('Scale')
                 
                 scale_unit = typed_kwargs['scale_unit']
                 scale_reverse = typed_kwargs['scale_reverse']
@@ -97,21 +98,21 @@ class AnimationPlayer:
                     for i, unit in enumerate(scale_unit):
                         reverse_val = scale_reverse[i] if isinstance(scale_reverse, tuple) else scale_reverse
                         ratio_val = scale_ratio[i] if isinstance(scale_ratio, tuple) else scale_ratio
-                        val = self._get_seg_result(s[unit], nowtime) * ratio_val
+                        val = self._get_seg_result(s[unit], nowtime, time_nodes) * ratio_val
                         val = -val if reverse_val else val
                         scale_values.append(val)
                     dic['scale'] = tuple(scale_values)
                 else:
                     reverse_val = scale_reverse if isinstance(scale_reverse, bool) else scale_reverse[0]
                     ratio_val = scale_ratio if isinstance(scale_ratio, (int, float)) else scale_ratio[0]
-                    val = self._get_seg_result(s[scale_unit], nowtime) * ratio_val
+                    val = self._get_seg_result(s[scale_unit], nowtime, time_nodes) * ratio_val
                     val = -val if reverse_val else val
                     dic['scale'] = val
 
             if 'Float' in ani:
-                f = ani.get('Float')
+                f, time_nodes = ani.get('Float')
                 if isinstance(f, list):
-                    float_val = self._get_seg_result(f, nowtime)
+                    float_val = self._get_seg_result(f, nowtime, time_nodes)
                     dic['float'] = float_val.item() if isinstance(float_val, np.ndarray) else float_val
             else:
                 float_val = 0.0
@@ -128,29 +129,19 @@ class AnimationPlayer:
             self.events.reset_events()
             return {}, False
 
-    def _get_seg_result(self, segments: Any, t: float) -> float:
-        """Binary search to find segmented interpolation result"""
+    def _get_seg_result(self, segments: Any, t: float, time_nodes: Optional[np.ndarray] = None) -> float:
+        """Binary search to find segmented interpolation result using Numba acceleration"""
         if not segments:
             return 0.0
-
-        left, right = 0, len(segments) - 1
-        while left <= right:
-            mid = (left + right) // 2
-            seg = segments[mid]
-            if t < seg.x[0]:
-                right = mid - 1
-            elif t > seg.x[-1]:
-                left = mid + 1
-            else:
-                return seg(t)
-
-        return segments[-1](t)  # Boundary case
+        
+        segment_index = binary_search_segment_index(time_nodes, t)
+        return segments[segment_index](t)
 
     def return_default(self,
                        default_value: float = 0.0, default_scale=1.0,
                        **kwargs: Union[str, bool, Tuple, float]) -> Tuple[Dict[str, Any], bool]:
 
-        typed_kwargs = type_kwargs(**kwargs)
+        typed_kwargs = player_type_kwargs(**kwargs)
 
         dic: Dict[str, Any] = {}
         ani = self.anim[typed_kwargs['path']]

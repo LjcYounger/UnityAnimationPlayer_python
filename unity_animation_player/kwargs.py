@@ -45,3 +45,23 @@ def type_kwargs(**kwargs) -> PlayKwargsDict:
     default_kwargs = PlayKwargs()
     merged_kwargs = {**asdict(default_kwargs), **kwargs}
     return asdict(from_dict(PlayKwargs, merged_kwargs))
+
+def player_type_kwargs(**kwargs) -> PlayKwargsDict:
+
+    default_kwargs = PlayKwargs()
+    merged_kwargs = {**asdict(default_kwargs), **kwargs}
+        
+    typed_kwargs: PlayKwargsDict = {
+        'path': str(merged_kwargs['path']),
+        'time_reverse': bool(merged_kwargs['time_reverse']),
+        'event_time_reverse': bool(merged_kwargs['event_time_reverse']),
+        'euler_unit': merged_kwargs['euler_unit'],
+        'rotation_unit': merged_kwargs['rotation_unit'],
+        'position_unit': merged_kwargs['position_unit'],
+        'position_reverse': merged_kwargs['position_reverse'],
+        'position_ratio': merged_kwargs['position_ratio'],
+        'scale_unit': merged_kwargs['scale_unit'],
+        'scale_reverse': merged_kwargs['scale_reverse'],
+        'scale_ratio': merged_kwargs['scale_ratio']
+    }
+    return typed_kwargs
