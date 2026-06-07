@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from dataclasses import asdict
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QFrame, QCheckBox, QDoubleSpinBox, QPushButton, QTextEdit
@@ -12,7 +11,7 @@ from PySide6.QtCore import Qt
 import pyqtgraph as pg
 import qdarkstyle
 
-from unity_animation_player import AnimationPlayer, PlayKwargs
+from unity_animation_player import AnimationPlayer, type_kwargs
 from .qml_window_example_windows.graph_window import AnimGraphWidget
 
 class InteractivePanel(QWidget):
@@ -28,19 +27,19 @@ class InteractivePanel(QWidget):
         self.animations = os.listdir(self.animation_folder)
         print(f"Found {len(self.animations)} animations in {self.animation_folder}: {', '.join(self.animations)}")
 
-        self.play_kwargs = PlayKwargs()
-        self.play_kwargs.path = 'general'
-        self.play_kwargs.time_reverse = False
-        self.play_kwargs.euler_unit = ('z',)
-        self.play_kwargs.rotation_unit = ('w',)
-        self.play_kwargs.position_unit = ('x', 'y')
-        self.play_kwargs.position_reverse = False
-        self.play_kwargs.position_ratio = 1.0
-        
-        # 新增：初始化 Scale 默认参数
-        self.play_kwargs.scale_unit = ('x', 'y', 'z')
-        self.play_kwargs.scale_reverse = False
-        self.play_kwargs.scale_ratio = 1.0
+        # 使用字典替代 PlayKwargs
+        self.play_kwargs = {
+            'path': 'general',
+            'time_reverse': False,
+            'euler_unit': ('z',),
+            'rotation_unit': ('w',),
+            'position_unit': ('x', 'y'),
+            'position_reverse': False,
+            'position_ratio': 1.0,
+            'scale_unit': ('x', 'y', 'z'),
+            'scale_reverse': False,
+            'scale_ratio': 1.0
+        }
 
         self.setup_ui()
         self.connect_signals()
@@ -54,31 +53,31 @@ class InteractivePanel(QWidget):
     def sync_ui_from_kwargs(self):
         """根据 self.play_kwargs 初始化 UI 控件的状态"""
         # 1. Time Reverse
-        self.time_reverse_check.setChecked(self.play_kwargs.time_reverse)
+        self.time_reverse_check.setChecked(self.play_kwargs['time_reverse'])
 
         # 2. Euler Unit
-        e_units = self.play_kwargs.euler_unit if isinstance(self.play_kwargs.euler_unit, tuple) else (self.play_kwargs.euler_unit,)
+        e_units = self.play_kwargs['euler_unit'] if isinstance(self.play_kwargs['euler_unit'], tuple) else (self.play_kwargs['euler_unit'],)
         self.e_u_x_check.setChecked('x' in e_units)
         self.e_u_y_check.setChecked('y' in e_units)
         self.e_u_z_check.setChecked('z' in e_units)
 
         # 3. Rotation Unit
-        r_units = self.play_kwargs.rotation_unit if isinstance(self.play_kwargs.rotation_unit, tuple) else (self.play_kwargs.rotation_unit,)
+        r_units = self.play_kwargs['rotation_unit'] if isinstance(self.play_kwargs['rotation_unit'], tuple) else (self.play_kwargs['rotation_unit'],)
         self.r_u_x_check.setChecked('x' in r_units)
         self.r_u_y_check.setChecked('y' in r_units)
         self.r_u_z_check.setChecked('z' in r_units)
         self.r_u_w_check.setChecked('w' in r_units)
 
         # 4. Position Unit
-        p_units = self.play_kwargs.position_unit if isinstance(self.play_kwargs.position_unit, tuple) else (self.play_kwargs.position_unit,)
+        p_units = self.play_kwargs['position_unit'] if isinstance(self.play_kwargs['position_unit'], tuple) else (self.play_kwargs['position_unit'],)
         self.p_u_x_check.setChecked('x' in p_units)
         self.p_u_y_check.setChecked('y' in p_units)
         self.p_u_z_check.setChecked('z' in p_units)
 
         # 5. Position Reverse
         # 判断是否是 All 模式 (True/False) 还是 Tuple 模式
-        if isinstance(self.play_kwargs.position_reverse, bool):
-            self.p_re_all_check.setChecked(self.play_kwargs.position_reverse)
+        if isinstance(self.play_kwargs['position_reverse'], bool):
+            self.p_re_all_check.setChecked(self.play_kwargs['position_reverse'])
             # 如果 All 被勾选，下面的 xyz 应该不可用且未勾选
             self.p_re_x_check.setChecked(False)
             self.p_re_y_check.setChecked(False)
@@ -86,7 +85,7 @@ class InteractivePanel(QWidget):
         else:
             # Tuple 模式
             self.p_re_all_check.setChecked(False)
-            reverses = self.play_kwargs.position_reverse
+            reverses = self.play_kwargs['position_reverse']
             # 确保 reverses 是列表或元组以便索引检查
             if not isinstance(reverses, (list, tuple)):
                 reverses = (reverses,)
@@ -100,10 +99,10 @@ class InteractivePanel(QWidget):
                     check.setChecked(False)
 
         # 6. Position Ratio
-        if isinstance(self.play_kwargs.position_ratio, (int, float)):
+        if isinstance(self.play_kwargs['position_ratio'], (int, float)):
             # All 模式
             self.p_ra_all_check.setChecked(True)
-            self.p_ra_all_spin.setValue(float(self.play_kwargs.position_ratio))
+            self.p_ra_all_spin.setValue(float(self.play_kwargs['position_ratio']))
             # 禁用单独的设置框
             self.p_ra_x_spin.setEnabled(False)
             self.p_ra_y_spin.setEnabled(False)
@@ -111,7 +110,7 @@ class InteractivePanel(QWidget):
         else:
             # Tuple 模式
             self.p_ra_all_check.setChecked(False)
-            ratios = self.play_kwargs.position_ratio
+            ratios = self.play_kwargs['position_ratio']
             if not isinstance(ratios, (list, tuple)):
                 ratios = (ratios,)
             
@@ -128,20 +127,20 @@ class InteractivePanel(QWidget):
             self.p_ra_all_spin.setEnabled(False)
 
         # 7. Scale Unit (新增)
-        s_units = self.play_kwargs.scale_unit if isinstance(self.play_kwargs.scale_unit, tuple) else (self.play_kwargs.scale_unit,)
+        s_units = self.play_kwargs['scale_unit'] if isinstance(self.play_kwargs['scale_unit'], tuple) else (self.play_kwargs['scale_unit'],)
         self.s_u_x_check.setChecked('x' in s_units)
         self.s_u_y_check.setChecked('y' in s_units)
         self.s_u_z_check.setChecked('z' in s_units)
 
         # 8. Scale Reverse (新增)
-        if isinstance(self.play_kwargs.scale_reverse, bool):
-            self.s_re_all_check.setChecked(self.play_kwargs.scale_reverse)
+        if isinstance(self.play_kwargs['scale_reverse'], bool):
+            self.s_re_all_check.setChecked(self.play_kwargs['scale_reverse'])
             self.s_re_x_check.setChecked(False)
             self.s_re_y_check.setChecked(False)
             self.s_re_z_check.setChecked(False)
         else:
             self.s_re_all_check.setChecked(False)
-            reverses = self.play_kwargs.scale_reverse
+            reverses = self.play_kwargs['scale_reverse']
             if not isinstance(reverses, (list, tuple)):
                 reverses = (reverses,)
             
@@ -153,15 +152,15 @@ class InteractivePanel(QWidget):
                     check.setChecked(False)
 
         # 9. Scale Ratio (新增)
-        if isinstance(self.play_kwargs.scale_ratio, (int, float)):
+        if isinstance(self.play_kwargs['scale_ratio'], (int, float)):
             self.s_ra_all_check.setChecked(True)
-            self.s_ra_all_spin.setValue(float(self.play_kwargs.scale_ratio))
+            self.s_ra_all_spin.setValue(float(self.play_kwargs['scale_ratio']))
             self.s_ra_x_spin.setEnabled(False)
             self.s_ra_y_spin.setEnabled(False)
             self.s_ra_z_spin.setEnabled(False)
         else:
             self.s_ra_all_check.setChecked(False)
-            ratios = self.play_kwargs.scale_ratio
+            ratios = self.play_kwargs['scale_ratio']
             if not isinstance(ratios, (list, tuple)):
                 ratios = (ratios,)
             
@@ -486,7 +485,7 @@ class InteractivePanel(QWidget):
             self.update_path(self.pathes[0])
 
     def update_path(self, path_name='general'):
-        self.play_kwargs.path = path_name
+        self.play_kwargs['path'] = path_name
         if not hasattr(self, 'animation_player'):
             return
             
@@ -502,8 +501,8 @@ class InteractivePanel(QWidget):
     def update_transform(self, transform_name='Position'):
         self.update_graph()
     def on_time_reverse_changed(self, state):
-        self.play_kwargs.time_reverse = (state == 2)
-        print(f"Time Reverse: {self.play_kwargs.time_reverse}")
+        self.play_kwargs['time_reverse'] = (state == 2)
+        print(f"Time Reverse: {self.play_kwargs['time_reverse']}")
         self.update_graph()
 
     def on_euler_unit_changed(self, state):
@@ -515,8 +514,8 @@ class InteractivePanel(QWidget):
         if self.e_u_z_check.isChecked():
             units.append('z')
         
-        self.play_kwargs.euler_unit = tuple(units) if units else 'z'
-        print(f"Euler Unit: {self.play_kwargs.euler_unit}")
+        self.play_kwargs['euler_unit'] = tuple(units) if units else 'z'
+        print(f"Euler Unit: {self.play_kwargs['euler_unit']}")
         self.update_graph()
 
     def on_rotation_unit_changed(self, state):
@@ -530,8 +529,8 @@ class InteractivePanel(QWidget):
         if self.r_u_w_check.isChecked():
             units.append('w')
         
-        self.play_kwargs.rotation_unit = tuple(units) if units else 'w'
-        print(f"Rotation Unit: {self.play_kwargs.rotation_unit}")
+        self.play_kwargs['rotation_unit'] = tuple(units) if units else 'w'
+        print(f"Rotation Unit: {self.play_kwargs['rotation_unit']}")
         self.update_graph()
 
     def on_position_unit_changed(self, state):
@@ -548,12 +547,12 @@ class InteractivePanel(QWidget):
             units.append('z')
         
         if not reverses:
-            self.play_kwargs.position_reverse = False
+            self.play_kwargs['position_reverse'] = False
         else:
-            self.play_kwargs.position_reverse = tuple(reverses)
+            self.play_kwargs['position_reverse'] = tuple(reverses)
 
-        self.play_kwargs.position_unit = tuple(units) if units else ('x', 'y')
-        print(f"Position Unit: {self.play_kwargs.position_unit}")
+        self.play_kwargs['position_unit'] = tuple(units) if units else ('x', 'y')
+        print(f"Position Unit: {self.play_kwargs['position_unit']}")
         self.update_graph()
 
     def on_position_reverse_all_changed(self, state):
@@ -564,14 +563,14 @@ class InteractivePanel(QWidget):
         self.p_re_z_check.setEnabled(not is_all_checked)
         
         if is_all_checked:
-            self.play_kwargs.position_reverse = True
+            self.play_kwargs['position_reverse'] = True
             self.p_re_x_check.setChecked(False)
             self.p_re_y_check.setChecked(False)
             self.p_re_z_check.setChecked(False)
         else:
             self.on_position_reverse_xyz_changed()
         
-        print(f"Position Reverse: {self.play_kwargs.position_reverse}")
+        print(f"Position Reverse: {self.play_kwargs['position_reverse']}")
         self.update_graph()
 
     def on_position_reverse_xyz_changed(self, state=None):
@@ -587,11 +586,11 @@ class InteractivePanel(QWidget):
             reverses.append(self.p_re_z_check.isChecked())
         
         if not reverses:
-            self.play_kwargs.position_reverse = False
+            self.play_kwargs['position_reverse'] = False
         else:
-            self.play_kwargs.position_reverse = tuple(reverses)
+            self.play_kwargs['position_reverse'] = tuple(reverses)
         
-        print(f"Position Reverse: {self.play_kwargs.position_reverse}")
+        print(f"Position Reverse: {self.play_kwargs['position_reverse']}")
         self.update_graph()
 
     def on_position_ratio_all_changed(self, state):
@@ -603,16 +602,16 @@ class InteractivePanel(QWidget):
         self.p_ra_z_spin.setEnabled(not is_all_checked)
         
         if is_all_checked:
-            self.play_kwargs.position_ratio = self.p_ra_all_spin.value()
-            print(f"Position Ratio: {self.play_kwargs.position_ratio}")
+            self.play_kwargs['position_ratio'] = self.p_ra_all_spin.value()
+            print(f"Position Ratio: {self.play_kwargs['position_ratio']}")
         else:
             self.on_position_ratio_xyz_changed()
         self.update_graph()
 
     def on_position_ratio_all_value_changed(self, value):
         if self.p_ra_all_check.isChecked():
-            self.play_kwargs.position_ratio = value
-            print(f"Position Ratio: {self.play_kwargs.position_ratio}")
+            self.play_kwargs['position_ratio'] = value
+            print(f"Position Ratio: {self.play_kwargs['position_ratio']}")
         self.update_graph()
 
     def on_position_ratio_xyz_changed(self, value=None):
@@ -627,11 +626,11 @@ class InteractivePanel(QWidget):
         
         unique_ratios = set(ratios)
         if len(unique_ratios) == 1:
-            self.play_kwargs.position_ratio = ratios[0]
+            self.play_kwargs['position_ratio'] = ratios[0]
         else:
-            self.play_kwargs.position_ratio = tuple(ratios)
+            self.play_kwargs['position_ratio'] = tuple(ratios)
         
-        print(f"Position Ratio: {self.play_kwargs.position_ratio}")
+        print(f"Position Ratio: {self.play_kwargs['position_ratio']}")
         self.update_graph()
 
     # 新增：Scale 事件处理函数
@@ -644,8 +643,8 @@ class InteractivePanel(QWidget):
         if self.s_u_z_check.isChecked():
             units.append('z')
         
-        self.play_kwargs.scale_unit = tuple(units) if units else ('x', 'y', 'z')
-        print(f"Scale Unit: {self.play_kwargs.scale_unit}")
+        self.play_kwargs['scale_unit'] = tuple(units) if units else ('x', 'y', 'z')
+        print(f"Scale Unit: {self.play_kwargs['scale_unit']}")
         self.update_graph()
 
     def on_scale_reverse_all_changed(self, state):
@@ -656,14 +655,14 @@ class InteractivePanel(QWidget):
         self.s_re_z_check.setEnabled(not is_all_checked)
         
         if is_all_checked:
-            self.play_kwargs.scale_reverse = True
+            self.play_kwargs['scale_reverse'] = True
             self.s_re_x_check.setChecked(False)
             self.s_re_y_check.setChecked(False)
             self.s_re_z_check.setChecked(False)
         else:
             self.on_scale_reverse_xyz_changed()
         
-        print(f"Scale Reverse: {self.play_kwargs.scale_reverse}")
+        print(f"Scale Reverse: {self.play_kwargs['scale_reverse']}")
         self.update_graph()
 
     def on_scale_reverse_xyz_changed(self, state=None):
@@ -679,11 +678,11 @@ class InteractivePanel(QWidget):
             reverses.append(self.s_re_z_check.isChecked())
         
         if not reverses:
-            self.play_kwargs.scale_reverse = False
+            self.play_kwargs['scale_reverse'] = False
         else:
-            self.play_kwargs.scale_reverse = tuple(reverses)
+            self.play_kwargs['scale_reverse'] = tuple(reverses)
         
-        print(f"Scale Reverse: {self.play_kwargs.scale_reverse}")
+        print(f"Scale Reverse: {self.play_kwargs['scale_reverse']}")
         self.update_graph()
 
     def on_scale_ratio_all_changed(self, state):
@@ -695,16 +694,16 @@ class InteractivePanel(QWidget):
         self.s_ra_z_spin.setEnabled(not is_all_checked)
         
         if is_all_checked:
-            self.play_kwargs.scale_ratio = self.s_ra_all_spin.value()
-            print(f"Scale Ratio: {self.play_kwargs.scale_ratio}")
+            self.play_kwargs['scale_ratio'] = self.s_ra_all_spin.value()
+            print(f"Scale Ratio: {self.play_kwargs['scale_ratio']}")
         else:
             self.on_scale_ratio_xyz_changed()
         self.update_graph()
 
     def on_scale_ratio_all_value_changed(self, value):
         if self.s_ra_all_check.isChecked():
-            self.play_kwargs.scale_ratio = value
-            print(f"Scale Ratio: {self.play_kwargs.scale_ratio}")
+            self.play_kwargs['scale_ratio'] = value
+            print(f"Scale Ratio: {self.play_kwargs['scale_ratio']}")
         self.update_graph()
 
     def on_scale_ratio_xyz_changed(self, value=None):
@@ -719,11 +718,11 @@ class InteractivePanel(QWidget):
         
         unique_ratios = set(ratios)
         if len(unique_ratios) == 1:
-            self.play_kwargs.scale_ratio = ratios[0]
+            self.play_kwargs['scale_ratio'] = ratios[0]
         else:
-            self.play_kwargs.scale_ratio = tuple(ratios)
+            self.play_kwargs['scale_ratio'] = tuple(ratios)
         
-        print(f"Scale Ratio: {self.play_kwargs.scale_ratio}")
+        print(f"Scale Ratio: {self.play_kwargs['scale_ratio']}")
         self.update_graph()
 
     def on_ball_window_button_pressed(self, button_name):
@@ -731,21 +730,24 @@ class InteractivePanel(QWidget):
         subprocess.Popen([sys.executable, 'example.py', 'qml_window'])
 
     def update_graph(self):
-        if not self.play_kwargs.path: return
+        if not self.play_kwargs['path']: return
 
+        # 使用 type_kwargs 处理参数字典
+        typed_kwargs = type_kwargs(**self.play_kwargs)
+        
         self.kwargs_lines.setText(', '.join((f'''{key}={round(value, 3) if type(value) == float 
                                                         else '"'+value+'"' if type(value) == str 
                                                         else value}''' 
-                                                        for key, value in asdict(self.play_kwargs).items() 
+                                                        for key, value in typed_kwargs.items() 
                                                         if value is not None)))
-        #print(asdict(self.play_kwargs))
-        sample_data = self.animation_player.sample_range(sample_rate=0.001, t_start=None, t_end=None, **asdict(self.play_kwargs))
+        #print(typed_kwargs)
+        sample_data = self.animation_player.sample_range(sample_rate=0.001, t_start=None, t_end=None, **typed_kwargs)
         sample_transform = self.transform_combo.currentText()
         if not sample_transform: return
-        sample_units = self.play_kwargs.position_unit if sample_transform == 'Position' \
-                        else self.play_kwargs.rotation_unit if sample_transform == 'Rotation' \
-                        else self.play_kwargs.euler_unit if sample_transform == 'Euler' \
-                        else self.play_kwargs.scale_unit if sample_transform == 'Scale' \
+        sample_units = self.play_kwargs['position_unit'] if sample_transform == 'Position' \
+                        else self.play_kwargs['rotation_unit'] if sample_transform == 'Rotation' \
+                        else self.play_kwargs['euler_unit'] if sample_transform == 'Euler' \
+                        else self.play_kwargs['scale_unit'] if sample_transform == 'Scale' \
                         else None  # Float
         for graph_widget in self.graph_widgets:
             graph_widget.plot_widget.clear()
