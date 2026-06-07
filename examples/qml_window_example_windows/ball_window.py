@@ -1,5 +1,7 @@
+from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass
+import time
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 from PySide6.QtCore import Qt, QUrl, Slot, Signal, QObject
@@ -12,6 +14,16 @@ import os
 from unity_animation_player import PysideAnimationPlayer
 from .popup_window import PopupWindow
 from .graph_window import AnimGraphWidget
+
+def timer(func):
+    @wraps(func)  # 保留原函数的元数据
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()  # 使用高精度计时器
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
+        print(f"{func.__name__} 耗时: {end - start:.8f} 秒")
+        return result
+    return wrapper
 
 
 # 定义消息处理器
@@ -139,6 +151,7 @@ class ExampleWindow(PopupWindow):
     def on_ball_animation_button_pressed(self):
         self.ball_animation_player.play()
 
+    @timer
     def on_ball_signal_received(self, data):
         """处理小球动画"""
         if data['playable']:

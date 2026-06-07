@@ -44,20 +44,32 @@ class AnimationPlayer:
                 e, time_nodes = ani.get('Euler')
 
                 euler_unit = typed_kwargs['euler_unit']
+                # 欧拉角插值器返回 (ex, ey, ez) 元组
+                euler_result = self._get_seg_result(e, nowtime, time_nodes)
                 if isinstance(euler_unit, tuple):
-                    euler = tuple(self._get_seg_result(e[unit], nowtime, time_nodes) for unit in euler_unit)
+                    # 提取指定的分量
+                    unit_indices = {'x': 0, 'y': 1, 'z': 2}
+                    euler = tuple(euler_result[unit_indices[unit]] for unit in euler_unit)
                 else:
-                    euler = self._get_seg_result(e[euler_unit], nowtime, time_nodes)
+                    # 返回全部分量或指定分量
+                    unit_index = {'x': 0, 'y': 1, 'z': 2}.get(euler_unit, None)
+                    euler = euler_result[unit_index] if unit_index is not None else euler_result
                 dic['euler'] = euler
 
             if 'Rotation' in ani:
                 r, time_nodes = ani.get('Rotation')
 
                 rotation_unit = typed_kwargs['rotation_unit']
+                # 四元数插值器返回 (qx, qy, qz, qw) 元组
+                rotation_result = self._get_seg_result(r, nowtime, time_nodes)
                 if isinstance(rotation_unit, tuple):
-                    rotation = tuple(self._get_seg_result(r[unit], nowtime, time_nodes) for unit in rotation_unit)
+                    # 提取指定的分量
+                    unit_indices = {'x': 0, 'y': 1, 'z': 2, 'w': 3}
+                    rotation = tuple(rotation_result[unit_indices[unit]] for unit in rotation_unit)
                 else:
-                    rotation = self._get_seg_result(r[rotation_unit], nowtime, time_nodes)
+                    # 返回全部分量或指定分量
+                    unit_index = {'x': 0, 'y': 1, 'z': 2, 'w': 3}.get(rotation_unit, None)
+                    rotation = rotation_result[unit_index] if unit_index is not None else rotation_result
                 dic['rotation'] = rotation
 
             if 'Position' in ani:

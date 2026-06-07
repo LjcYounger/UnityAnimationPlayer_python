@@ -1,4 +1,5 @@
 from ..numba_optimized.rational_bezier_interpolator import RationalBezierInterpolation
+from ..numba_optimized.spherical_linear_interpolator import SphericalLinearInterpolation, EulerSphericalLinearInterpolation
 import numpy as np
 
 class MixedSegment:
@@ -14,7 +15,10 @@ class MixedSegment:
         a, b = self.x_interval
         return (x >= a) & (x <= b)
 
-def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out_weights, tangentMode, weightedMode):
+def piecewise_hermite(x_points, y_points, 
+                      in_slopes, out_slopes, 
+                      in_weights, out_weights, 
+                      tangentMode, weightedMode):
     x_points = np.array(x_points, dtype=float)
     y_points = np.array(y_points, dtype=float)
     n = len(x_points)
@@ -91,15 +95,75 @@ def piecewise_hermite(x_points, y_points, in_slopes, out_slopes, in_weights, out
                 weight0 = weight_out[k]
                 weight1 = weight_in[k+1]
 
-
-                hermite = RationalBezierInterpolation(x0, x1, y0, y1, slope0, slope1, 1/3, weight0, weight1, 1/3)
-                interpolator = hermite
+                interpolator = RationalBezierInterpolation(x0, x1, y0, y1, slope0, slope1, 1/3, weight0, weight1, 1/3)
 
             segments.append(MixedSegment(x0, x1, interpolator))
 
     return segments
 
-def _parse_m_Curve(m_Curve_list):
+
+def piecewise_slerp(x_points, value_components, tangentMode, interpolation_type='quaternion'):
+    """
+    处理旋转曲线的分段 SLERP 插值（通用函数）
+    
+    参数:
+        x_points: 时间点数组
+        value_components: 值分量字典
+            - 四元数: {'x': (...), 'y': (...), 'z': (...), 'w': (...)}
+            - 欧拉角: {'x': (...), 'y': (...), 'z': (...)}
+        tangentMode: 切线模式数组
+        interpolation_type: 插值类型，'quaternion' 或 'euler'
+    
+    返回:
+        MixedSegment 列表
+        - 四元数类型：每个 segment 返回 (qx, qy, qz, qw)
+        - 欧拉角类型：每个 segment 返回 (ex, ey, ez)
+    """
+    x_points = np.array(x_points, dtype=float)
+    n = len(x_points)
+    if n < 2:
+        return []
+    
+    # 提取各分量
+    components = {key: np.array(value_components[key], dtype=float) for key in value_components.keys()}
+    
+    tangentMode = np.array(tangentMode, dtype=float)
+    
+    segments = []
+    
+    # 根据 tangentMode 确定分段点
+    break_indices = np.where(tangentMode != 1.0)[0]
+    indices = [0] + list(break_indices) + [n - 1]
+    indices = sorted(set(indices))
+    
+    for seg_start_idx in range(len(indices) - 1):
+        i0 = indices[seg_start_idx]
+        i1 = indices[seg_start_idx + 1]
+        
+        if i1 <= i0:
+            continue
+        
+        # 对每个区间创建 SLERP 插值器
+        for k in range(i0, i1):
+            x0, x1 = x_points[k], x_points[k+1]
+            
+            # 获取起始和结束值
+            start_values = tuple(components[key][k] for key in sorted(components.keys()))
+            end_values = tuple(components[key][k+1] for key in sorted(components.keys()))
+            
+            # 根据类型创建对应的插值器（直接传入时间范围，自动处理归一化）
+            if interpolation_type == 'quaternion':
+                slerp_func = SphericalLinearInterpolation(*start_values, *end_values, x0, x1)
+            else:  # euler
+                slerp_func = EulerSphericalLinearInterpolation(*start_values, *end_values, x0, x1)
+            
+            # 直接使用插值器，无需额外的闭包包装
+            segments.append(MixedSegment(x0, x1, slerp_func))
+    
+    return segments
+
+
+def _parse_m_Curve(m_Curve_list, m_XCurves_name='m_PositionCurves'):
     """Parse an m_Curve block and perform interpolation processing"""
     parameter_keys = list(m_Curve_list[0].keys())
     parameter_keys.remove("serializedVersion")
@@ -114,10 +178,19 @@ def _parse_m_Curve(m_Curve_list):
             parameter_dict[key] = tuple(curve[key] for curve in m_Curve_list)
 
     max_time = max(parameter_dict["time"])
-
     time_nodes = np.array(parameter_dict["time"])
-
-    if isinstance(parameter_dict["value"], dict):
+    
+    if m_XCurves_name in ('m_RotationCurves', 'm_EulerCurves'):
+        # 旋转曲线使用 SLERP 插值
+        interpolation_type = 'quaternion' if m_XCurves_name == 'm_RotationCurves' else 'euler'
+        interpolation_list = piecewise_slerp(
+            parameter_dict["time"],
+            parameter_dict["value"],
+            parameter_dict["tangentMode"],
+            interpolation_type
+        )
+    elif isinstance(parameter_dict["value"], dict):
+        # 向量类型（如 Position, Scale）的分量插值
         interpolation_list = {}
         for comp in parameter_dict["value"].keys():
             args = (
@@ -132,6 +205,7 @@ def _parse_m_Curve(m_Curve_list):
             )
             interpolation_list[comp] = piecewise_hermite(*args)
     else:
+        # 标量类型插值
         args = (
             parameter_dict["time"],
             parameter_dict["value"],
@@ -147,7 +221,7 @@ def _parse_m_Curve(m_Curve_list):
     return interpolation_list, max_time, time_nodes
 
 
-def _parse_curve(m_XCurves):
+def _parse_curve(m_XCurves, m_XCurves_name):
     output = {}
     general_times = 0
     max_times = []
@@ -158,7 +232,7 @@ def _parse_curve(m_XCurves):
             general_times += 1
         else:
             path = str(path)
-        interpolation_list, max_time, time_nodes = _parse_m_Curve(m_XCurve["curve"]["m_Curve"])
+        interpolation_list, max_time, time_nodes = _parse_m_Curve(m_XCurve["curve"]["m_Curve"], m_XCurves_name)
         output[path] = (interpolation_list, time_nodes)
         max_times.append(max_time)
     max_time_ = max(max_times) if max_times else 0
@@ -171,7 +245,7 @@ def parse(anim_dict):
     for m_XCurves in m_XCurveses:
         m_XCurves_list = anim_dict[m_XCurves]
         if m_XCurves_list:
-            m_XCurves_dict, max_time = _parse_curve(m_XCurves_list)
+            m_XCurves_dict, max_time = _parse_curve(m_XCurves_list, m_XCurves)
             for path_key, m_Curve_interpolation_time_nodes in m_XCurves_dict.items():
                 if path_key not in paths:
                     paths[path_key] = {}
