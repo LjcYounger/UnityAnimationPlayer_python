@@ -151,7 +151,7 @@ class ExampleWindow(PopupWindow):
     def on_ball_animation_button_pressed(self):
         self.ball_animation_player.play()
 
-    @timer
+
     def on_ball_signal_received(self, data):
         """处理小球动画"""
         if data['playable']:
@@ -164,6 +164,7 @@ class ExampleWindow(PopupWindow):
             scaleY = float(scaleY) if scaleY else None
 
             rotationAngle = data.get('euler', None)
+            print(rotationAngle)
             rotationAngle = float(rotationAngle) if rotationAngle else None
             self.root_obj.enableBallTrail()
             self.root_obj.updateBallTransform(centerX, centerY, scaleX, scaleY, rotationAngle)
