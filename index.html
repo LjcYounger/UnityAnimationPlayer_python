@@ -252,10 +252,10 @@ for time, data in samples.items():
     'playable': bool     # Whether animation is still playing
 }
 </code></pre>
-<h3 id="pysideanimationplayer">PysideAnimationPlayer</h3>
+<h3 id="signalanimationplayer">SignalAnimationPlayer</h3>
 <p>Inherits from AnimationPlayer, integrates PySide6 timer for GUI applications.</p>
 <p><strong>Constructor</strong></p>
-<pre><code class="language-python">PysideAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
+<pre><code class="language-python">SignalAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
 </code></pre>
 <p><strong>Main Methods</strong></p>
 <table>
@@ -580,14 +580,14 @@ def fast_sample_range(player, sample_rate=0.01):
 <h2 id="gui-integration">GUI Integration</h2>
 <h3 id="basic-usage_1">Basic Usage</h3>
 <pre><code class="language-python">from PySide6.QtCore import Signal
-from unity_animation_player import PysideAnimationPlayer
+from unity_animation_player import SignalAnimationPlayer
 
 class MyWidget(QWidget):
     anim_signal = Signal(dict)
 
     def __init__(self):
         super().__init__()
-        self.player = PysideAnimationPlayer(
+        self.player = SignalAnimationPlayer(
             self.anim_signal, 
             &quot;animation.anim&quot;,
             position_ratio=(2.0, 2.0)
@@ -707,7 +707,7 @@ class MyPopup(PopupWindow):
 <li><code>function</code>: Callback function</li>
 <li><code>args</code>: Tuple of event parameter names to pass to callback</li>
 </ul>
-<h3 id="pysideanimationplayer_1">PysideAnimationPlayer</h3>
+<h3 id="signalanimationplayer_1">SignalAnimationPlayer</h3>
 <p><strong>Methods</strong></p>
 <table>
 <thead>
@@ -862,5 +862,5 @@ class MyPopup(PopupWindow):
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-06-02 14:42:28.973725+00:00
+Build Date UTC : 2026-06-08 04:12:31.573761+00:00
 -->
