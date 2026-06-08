@@ -125,14 +125,14 @@ AnimationPlayer(path: str, stop_time: Optional[float] = None)
 }
 ```
 
-### PysideAnimationPlayer
+### SignalAnimationPlayer
 
 Inherits from AnimationPlayer, integrates PySide6 timer for GUI applications.
 
 **Constructor**
 
 ```python
-PysideAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
+SignalAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
 ```
 
 **Main Methods**
@@ -444,14 +444,14 @@ def fast_sample_range(player, sample_rate=0.01):
 
 ```python
 from PySide6.QtCore import Signal
-from unity_animation_player import PysideAnimationPlayer
+from unity_animation_player import SignalAnimationPlayer
 
 class MyWidget(QWidget):
     anim_signal = Signal(dict)
   
     def __init__(self):
         super().__init__()
-        self.player = PysideAnimationPlayer(
+        self.player = SignalAnimationPlayer(
             self.anim_signal, 
             "animation.anim",
             position_ratio=(2.0, 2.0)
@@ -560,7 +560,7 @@ Register event callback function.
 - `function`: Callback function
 - `args`: Tuple of event parameter names to pass to callback
 
-### PysideAnimationPlayer
+### SignalAnimationPlayer
 
 **Methods**
 

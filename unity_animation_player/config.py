@@ -1,1 +1,2 @@
 USE_JIT = True
+FPS = 60

@@ -1,7 +1,7 @@
 # Base Class
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, Signal
-from unity_animation_player import PysideAnimationPlayer
+from unity_animation_player import SignalAnimationPlayer
 
 class PopupWindow(QWidget):
     anim_signal = Signal(dict)
@@ -18,7 +18,7 @@ class PopupWindow(QWidget):
         self.switch_anim(anim, **kwargs)
     def switch_anim(self, anim, **kwargs):
         self.anim_signal.connect(self.anim_signal_received)
-        self.animation_player = PysideAnimationPlayer(self.anim_signal, anim, kwargs.get('stop_time', None), **kwargs)
+        self.animation_player = SignalAnimationPlayer(self.anim_signal, anim, kwargs.get('stop_time', None), **kwargs)
 
     def play_anim(self, mode=1, initial_time=0, initial_invisiable=True):
         self.position0 = (self.pos().x(), self.pos().y())

@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, Signal
-from unity_animation_player import PysideAnimationPlayer
+from unity_animation_player import SignalAnimationPlayer
 
 import time
 
@@ -31,7 +31,7 @@ class PopupWindow(QWidget):
         self.show()
 
         self.anim_signal.connect(self.anim_signal_received)
-        self.animation_player = PysideAnimationPlayer(self.anim_signal, anim, kwargs.get('stop_time', None), **kwargs)
+        self.animation_player = SignalAnimationPlayer(self.anim_signal, anim, kwargs.get('stop_time', None), **kwargs)
         self.animation_player.play()
 
     def anim_signal_received(self, dic):

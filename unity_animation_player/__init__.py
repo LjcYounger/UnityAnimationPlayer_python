@@ -1,19 +1,23 @@
 from .animation_player import AnimationPlayer
-from .pyside_animation_player import PysideAnimationPlayer
+from .signal_animation_player import SignalAnimationPlayer
 from .animation_events import AnimationEvents
 from .kwargs import PlayKwargsDict, type_kwargs
 from .numba_optimized.rational_bezier_interpolator import RationalBezierInterpolation
-from .config import USE_JIT
+from .numba_optimized.spherical_linear_interpolator import SphericalLinearInterpolation, EulerSphericalLinearInterpolation
+from . import config
 
-if USE_JIT:
+if config.USE_JIT:
     # Compile in advance
-    _ = RationalBezierInterpolation(0, 1, 0, 1, 0, 0, 1, 1, 1, 1)
-    _(0.5)
+    RationalBezierInterpolation(0, 1, 0, 1, 0, 0, 1, 1, 1, 1)(0.5)
+    SphericalLinearInterpolation(0, 1, 0, 1, 0, 0, 1, 1, 0, 1)(0.5)
+    EulerSphericalLinearInterpolation(0, 1, 0, 1, 0, 0, 0, 1)(0.5)
+
 
 __all__ = [
     "AnimationPlayer",
-    "PysideAnimationPlayer",
+    "SignalAnimationPlayer",
     "AnimationEvents",
     "PlayKwargsDict",
-    "type_kwargs"
+    "type_kwargs",
+    "config"
 ]

@@ -224,12 +224,12 @@ class AnimationTest:
         
         # 3. Apply rotation
         angle = 0
-        if 'rotation' in frame_data:
-            angle = frame_data['rotation']
+        if 'euler' in frame_data:
+            angle = frame_data['euler']
             # If radians convert to degrees (assuming return is radians)
             # angle = math.degrees(angle)
-        elif 'euler' in frame_data:
-            angle = frame_data['euler']
+        elif 'rotation' in frame_data:
+            angle = frame_data['rotation']
             # If radians convert to degrees (assuming return is radians)
             # angle = math.degrees(angle)
         

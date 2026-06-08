@@ -11,7 +11,7 @@ from PySide6.QtQuickWidgets import QQuickWidget
 from PySide6.QtCore import qInstallMessageHandler, QtMsgType
 import os
 
-from unity_animation_player import PysideAnimationPlayer
+from unity_animation_player import SignalAnimationPlayer
 from .popup_window import PopupWindow
 from .graph_window import AnimGraphWidget
 
@@ -60,13 +60,13 @@ qInstallMessageHandler(qml_message_handler)
 class ButtonAnimationData(QObject):
     """避免Signal只能作为类属性创建而无法动态创建的问题"""
     button_name: str
-    player: PysideAnimationPlayer
+    player: SignalAnimationPlayer
     signal: Signal = Signal(dict)
     
     def __init__(self, button_name: str):
         super().__init__()
         self.button_name = button_name
-        self.player = PysideAnimationPlayer(self.signal, f"examples/AnimationClip/UIAni_Button_Scale.anim")
+        self.player = SignalAnimationPlayer(self.signal, f"examples/AnimationClip/UIAni_Button_Scale.anim")
 
 
 class ExampleWindow(PopupWindow):
@@ -103,8 +103,8 @@ class ExampleWindow(PopupWindow):
         self.setup_multiple_animations(self.animated_buttons)
 
         self.ball_animation_signal.connect(self.on_ball_signal_received)
-        #self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/Hihumi_Original_TSS_Interaction01.anim", stop_time=None, position_ratio=(-24000, -6000), path="bone_root/Bip001")
-        self.ball_animation_player = PysideAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, position_ratio=(9, 4))
+        #self.ball_animation_player = SignalAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/Hihumi_Original_TSS_Interaction01.anim", stop_time=None, position_ratio=(-24000, -6000), path="bone_root/Bip001")
+        self.ball_animation_player = SignalAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, position_ratio=(9, 4))
 
         self.ball_animation_player.register_event('eventTriggered', self.event_triggered, ('data',))
 

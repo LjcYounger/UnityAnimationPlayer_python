@@ -63,14 +63,14 @@ result, valid = player.play_frame(0.5,
 
 ```python
 from PySide6.QtCore import Signal
-from unity_animation_player import PysideAnimationPlayer
+from unity_animation_player import SignalAnimationPlayer
 
 class MyWindow(QWidget):
     anim_signal = Signal(dict)
     
     def __init__(self):
         super().__init__()
-        self.player = PysideAnimationPlayer(
+        self.player = SignalAnimationPlayer(
             self.anim_signal, 
             "animation.anim"
         )

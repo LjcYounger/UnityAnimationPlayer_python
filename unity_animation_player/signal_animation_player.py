@@ -1,12 +1,12 @@
 from typing import Any, Dict, Tuple, Union
-from PySide6.QtCore import QTimer, Signal
+from qtpy.QtCore import QTimer, Signal
 from .animation_player import AnimationPlayer
 
 from .kwargs import type_kwargs
 
-from .utils import timer
+from .config import FPS
 
-class PysideAnimationPlayer(AnimationPlayer):
+class SignalAnimationPlayer(AnimationPlayer):
     def __init__(self, signal: Signal, file_path: str, stop_time: float = None,
                  **kwargs: Union[str, bool, Tuple, float]):
         """All available kwargs are listed in kwargs.py"""
@@ -19,7 +19,7 @@ class PysideAnimationPlayer(AnimationPlayer):
         self.mode = 1  # 0: stop, >0: forward_play, <0: backward_play
         self.time_reverse = False
         self.t = 0
-        self.delta_t = 1/60
+        self.delta_t = 1/FPS
         self.timer = QTimer()
         self.timer.timeout.connect(self._pyside_play_frame)
 
