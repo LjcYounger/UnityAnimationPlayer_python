@@ -35,7 +35,7 @@ class SignalAnimationPlayer(AnimationPlayer):
 
         self.t += self.delta_t * self.mode
 
-    def play(self, t: float = None, mode: int | float = None):
+    def play(self, t: float = None, mode: Union[int, float] = None):
         if mode is not None:
             self.set_mode(mode)
 
@@ -54,7 +54,7 @@ class SignalAnimationPlayer(AnimationPlayer):
     def set_time(self, t: float):
         self.t = t
 
-    def set_mode(self, mode: int | float):
+    def set_mode(self, mode: Union[int, float]):
         self.mode = mode
         self.parameters['event_time_reverse'] = mode < 0
 

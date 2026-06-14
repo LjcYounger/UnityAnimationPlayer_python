@@ -11,3 +11,4 @@ constant_test
 site
 dist
 *.pyc
+setup.py

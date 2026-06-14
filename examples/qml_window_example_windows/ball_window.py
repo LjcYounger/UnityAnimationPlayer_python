@@ -105,6 +105,7 @@ class ExampleWindow(PopupWindow):
         self.ball_animation_signal.connect(self.on_ball_signal_received)
         #self.ball_animation_player = SignalAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/Hihumi_Original_TSS_Interaction01.anim", stop_time=None, position_ratio=(-24000, -6000), path="bone_root/Bip001")
         self.ball_animation_player = SignalAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/T.anim", stop_time=None, position_ratio=(9, 4))
+        #self.ball_animation_player = SignalAnimationPlayer(self.ball_animation_signal, "examples/AnimationClip/circle.anim", stop_time=None, position_ratio=(100, 100))
 
         self.ball_animation_player.register_event('eventTriggered', self.event_triggered, ('data',))
 
@@ -164,7 +165,6 @@ class ExampleWindow(PopupWindow):
             scaleY = float(scaleY) if scaleY else None
 
             rotationAngle = data.get('euler', None)
-            print(rotationAngle)
             rotationAngle = float(rotationAngle) if rotationAngle else None
             self.root_obj.enableBallTrail()
             self.root_obj.updateBallTransform(centerX, centerY, scaleX, scaleY, rotationAngle)
