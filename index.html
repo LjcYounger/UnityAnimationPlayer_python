@@ -59,10 +59,6 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#table-of-contents" class="nav-link">Table of Contents</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
             <li class="nav-item" data-bs-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
               <ul class="nav flex-column">
               </ul>
@@ -84,6 +80,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#advanced-usage" class="nav-link">Advanced Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#interpolation-system" class="nav-link">Interpolation System</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -111,10 +111,6 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#contributing" class="nav-link">Contributing</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
               </ul>
             </li>
         </ul>
@@ -124,20 +120,7 @@
 
 <h1 id="unity-animation-player-documentation">Unity Animation Player Documentation</h1>
 <h2 id="overview">Overview</h2>
-<p>Unity Animation Player is a Python library for parsing and playing animation files (.anim) exported from the Unity engine. It implements core features of Unity's animation system, including Hermite curve interpolation, rational Bezier curves, and animation event triggering, allowing complete reproduction of Unity animation behavior in Python environments.</p>
-<h2 id="table-of-contents">Table of Contents</h2>
-<ol>
-<li><a href="#quick-start">Quick Start</a></li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#core-classes">Core Classes</a></li>
-<li><a href="#parameter-configuration">Parameter Configuration</a></li>
-<li><a href="#animation-events">Animation Events</a></li>
-<li><a href="#advanced-usage">Advanced Usage</a></li>
-<li><a href="#performance-optimization">Performance Optimization</a></li>
-<li><a href="#gui-integration">GUI Integration</a></li>
-<li><a href="#examples">Examples</a></li>
-<li><a href="#api-reference">API Reference</a></li>
-</ol>
+<p>Unity Animation Player is a Python library for parsing and playing animation files (.anim) exported from the Unity engine. It implements core features of Unity's animation system, including Hermite curve interpolation, rational Bezier curves, SLERP quaternion interpolation, and animation event triggering.</p>
 <hr />
 <h2 id="quick-start">Quick Start</h2>
 <h3 id="basic-usage">Basic Usage</h3>
@@ -171,16 +154,17 @@ for time, data in samples.items():
 <li>Python &gt;= 3.8</li>
 <li>numpy</li>
 <li>PyYAML (with CLoader)</li>
-<li>scipy (optional, for some interpolation algorithms)</li>
+<li>qtpy (optional, for Qt signal support)</li>
 <li>PySide6 (optional, for GUI features)</li>
 <li>numba (optional, for JIT acceleration)</li>
 </ul>
 <h3 id="installation-steps">Installation Steps</h3>
-<pre><code class="language-bash">pip install numpy pyyaml scipy PySide6 numba
+<pre><code class="language-bash">pip install numpy pyyaml qtpy PySide6 numba
 </code></pre>
 <h3 id="jit-configuration">JIT Configuration</h3>
 <p>Edit <code>unity_animation_player/config.py</code>:</p>
 <pre><code class="language-python">USE_JIT = True   # Enable numba JIT acceleration
+FPS = 60         # Default frame rate for SignalAnimationPlayer
 </code></pre>
 <hr />
 <h2 id="core-classes">Core Classes</h2>
@@ -210,6 +194,33 @@ for time, data in samples.items():
 </tr>
 </tbody>
 </table>
+<p><strong>Properties</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>anim</td>
+<td>dict</td>
+<td>Parsed animation data</td>
+</tr>
+<tr>
+<td>stop_time</td>
+<td>float</td>
+<td>Animation end time</td>
+</tr>
+<tr>
+<td>events</td>
+<td>AnimationEvents</td>
+<td>Event manager</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Main Methods</strong></p>
 <table>
 <thead>
@@ -235,6 +246,10 @@ for time, data in samples.items():
 <td><code>add_event(delay, **kwargs)</code></td>
 <td>Dynamically add event</td>
 </tr>
+<tr>
+<td><code>return_default(**kwargs)</code></td>
+<td>Return default values when animation ends</td>
+</tr>
 </tbody>
 </table>
 <p><strong>play_frame Return Value</strong></p>
@@ -243,20 +258,78 @@ for time, data in samples.items():
 
 # Possible keys in result
 {
-    'position': (x, y) or single float,
-    'scale': (x, y, z) or single float,
-    'rotation': (x, y, z, w) or single float,
-    'euler': (x, y, z) or single float,
-    'float': float,
-    'events': list,      # Triggered events list
-    'playable': bool     # Whether animation is still playing
+    'position': (x, y) or single float,   # Based on position_unit
+    'scale': (x, y, z) or single float,   # Based on scale_unit
+    'rotation': (x, y, z, w) or single float,  # Based on rotation_unit
+    'euler': (x, y, z) or single float,   # Based on euler_unit
+    'float': float,                       # Float curve value
+    'events': list,                       # Triggered events list
+    'playable': bool                      # Whether animation is still playing
 }
 </code></pre>
 <h3 id="signalanimationplayer">SignalAnimationPlayer</h3>
-<p>Inherits from AnimationPlayer, integrates PySide6 timer for GUI applications.</p>
+<p>Inherits from AnimationPlayer, integrates Qt timer for GUI applications.</p>
 <p><strong>Constructor</strong></p>
 <pre><code class="language-python">SignalAnimationPlayer(signal: Signal, file_path: str, stop_time: float = None, **kwargs)
 </code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>signal</td>
+<td>Signal</td>
+<td>Qt signal to emit animation frames</td>
+</tr>
+<tr>
+<td>file_path</td>
+<td>str</td>
+<td>Path to .anim file</td>
+</tr>
+<tr>
+<td>stop_time</td>
+<td>float</td>
+<td>Optional, overrides animation end time</td>
+</tr>
+<tr>
+<td>**kwargs</td>
+<td>dict</td>
+<td>Playback parameters (see PlayKwargsDict)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Properties</strong></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mode</td>
+<td>int/float</td>
+<td>Playback speed/direction (0=stop, &gt;0=forward, &lt;0=backward)</td>
+</tr>
+<tr>
+<td>t</td>
+<td>float</td>
+<td>Current animation time</td>
+</tr>
+<tr>
+<td>timer</td>
+<td>QTimer</td>
+<td>Qt timer for frame updates</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Main Methods</strong></p>
 <table>
 <thead>
@@ -267,8 +340,8 @@ for time, data in samples.items():
 </thead>
 <tbody>
 <tr>
-<td><code>play(t, mode)</code></td>
-<td>Start playback, mode=1 forward, mode=-1 reverse</td>
+<td><code>play(t=None, mode=None)</code></td>
+<td>Start playback, default mode=1 forward</td>
 </tr>
 <tr>
 <td><code>stop()</code></td>
@@ -284,20 +357,49 @@ for time, data in samples.items():
 </tr>
 </tbody>
 </table>
+<h3 id="animationevents">AnimationEvents</h3>
+<p>Event management class for handling animation events.</p>
+<p><strong>Constructor</strong></p>
+<pre><code class="language-python">AnimationEvents(raw_events: list)
+</code></pre>
+<p><strong>Methods</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add_event(delay, *kwargs)</code></td>
+<td>Add a new event</td>
+</tr>
+<tr>
+<td><code>get_events(t, time_reverse)</code></td>
+<td>Get events triggered up to time t</td>
+</tr>
+<tr>
+<td><code>reset_events()</code></td>
+<td>Reset event queue to initial state</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="parameter-configuration">Parameter Configuration</h2>
-<h3 id="playkwargs-class">PlayKwargs Class</h3>
-<p>Pass parameters via <code>**kwargs</code> to control animation sampling behavior.</p>
-<pre><code class="language-python">from unity_animation_player import PlayKwargs
+<h3 id="playkwargsdict-type">PlayKwargsDict Type</h3>
+<p>Pass parameters via <code>**kwargs</code> to control animation sampling behavior. Use <code>type_kwargs()</code> to normalize input.</p>
+<pre><code class="language-python">from unity_animation_player import type_kwargs
 
-kwargs = PlayKwargs()
-kwargs.path = &quot;general&quot;
-kwargs.time_reverse = False
-kwargs.position_unit = ('x', 'y')
-kwargs.position_ratio = 1.0
-kwargs.position_reverse = False
+kwargs = type_kwargs(
+    path=&quot;general&quot;,
+    time_reverse=False,
+    position_unit=('x', 'y'),
+    position_ratio=1.0,
+    position_reverse=False
+)
 
-result, valid = player.play_frame(0.5, **vars(kwargs))
+result, valid = player.play_frame(0.5, **kwargs)
 </code></pre>
 <h3 id="parameter-reference">Parameter Reference</h3>
 <table>
@@ -330,49 +432,49 @@ result, valid = player.play_frame(0.5, **vars(kwargs))
 </tr>
 <tr>
 <td>euler_unit</td>
-<td>str/tuple</td>
+<td>str or tuple of 'x','y','z'</td>
 <td>'z'</td>
 <td>Euler angle axis selection</td>
 </tr>
 <tr>
 <td>rotation_unit</td>
-<td>str/tuple</td>
+<td>str or tuple of 'x','y','z','w'</td>
 <td>'w'</td>
 <td>Rotation axis selection (quaternion)</td>
 </tr>
 <tr>
 <td>position_unit</td>
-<td>str/tuple</td>
+<td>str or tuple of 'x','y','z'</td>
 <td>('x', 'y')</td>
 <td>Position axis selection</td>
 </tr>
 <tr>
 <td>position_reverse</td>
-<td>bool/tuple</td>
+<td>bool or tuple of bool</td>
 <td>False</td>
 <td>Whether to negate position values</td>
 </tr>
 <tr>
 <td>position_ratio</td>
-<td>float/tuple</td>
+<td>float or tuple of float</td>
 <td>1.0</td>
 <td>Position value scale factor</td>
 </tr>
 <tr>
 <td>scale_unit</td>
-<td>str/tuple</td>
-<td>('x', 'y')</td>
+<td>str or tuple of 'x','y','z'</td>
+<td>('x', 'y', 'z')</td>
 <td>Scale axis selection</td>
 </tr>
 <tr>
 <td>scale_reverse</td>
-<td>bool/tuple</td>
+<td>bool or tuple of bool</td>
 <td>False</td>
 <td>Whether to negate scale values</td>
 </tr>
 <tr>
 <td>scale_ratio</td>
-<td>float/tuple</td>
+<td>float or tuple of float</td>
 <td>1.0</td>
 <td>Scale value scale factor</td>
 </tr>
@@ -384,16 +486,22 @@ result, valid = player.play_frame(0.5, **vars(kwargs))
 </ul>
 <p><code>python
   position_reverse = True      # Negate X, Y, Z all
-  position_ratio = 2.0         # Scale X, Y, Z all by 2x</code>
-- <strong>Tuple Mode</strong>: Independent settings per axis</p>
+  position_ratio = 2.0         # Scale X, Y, Z all by 2x</code></p>
+<ul>
+<li><strong>Tuple Mode</strong>: Independent settings per axis</li>
+</ul>
 <p><code>python
   position_unit = ('x', 'y')          # Output only X and Y axes
   position_reverse = (False, True)    # X unchanged, Y negated
   position_ratio = (1.0, 2.0)         # X unchanged, Y scaled by 2x</code></p>
+<h3 id="type_kwargs-function">type_kwargs Function</h3>
+<pre><code class="language-python">type_kwargs(**kwargs) -&gt; PlayKwargsDict
+</code></pre>
+<p>Normalizes keyword arguments with default values. Converts string units to tuple when appropriate and ensures proper typing.</p>
 <hr />
 <h2 id="animation-events">Animation Events</h2>
 <p>Unity animations support triggering events at specific times. This library fully supports this feature.</p>
-<h3 id="parsing-events">Parsing Events</h3>
+<h3 id="event-structure">Event Structure</h3>
 <p>Events in animation files are automatically parsed:</p>
 <pre><code class="language-yaml">m_Events:
   - time: 0.41666666
@@ -401,6 +509,7 @@ result, valid = player.play_frame(0.5, **vars(kwargs))
     data: EVENT_TRIGGERED
     floatParameter: 2.8
     intParameter: 6
+    messageOptions: 0
 </code></pre>
 <h3 id="registering-event-callbacks">Registering Event Callbacks</h3>
 <pre><code class="language-python">def on_event_triggered(data, float_param, int_param):
@@ -431,7 +540,7 @@ result, valid = player.play_frame(0.42)
 # Unity: X range [0, 100], Y range [0, 100]
 # Screen: X range [0, 1920], Y range [0, 1080], Y axis reversed
 
-player.play_frame(0.5, 
+result, valid = player.play_frame(0.5, 
     position_ratio=(19.2, 10.8),  # Scale factors
     position_reverse=(False, True) # Y axis reversed
 )
@@ -459,41 +568,6 @@ for path in paths:
     if valid and 'position' in result:
         print(f&quot;{path}: {result['position']}&quot;)
 </code></pre>
-<h3 id="custom-interpolation-post-processing">Custom Interpolation Post-Processing</h3>
-<pre><code class="language-python"># Use sample_range to get full curve, then perform custom processing
-samples = player.sample_range(sample_rate=0.01)
-
-# Calculate velocity (derivative of position over time)
-times = sorted(samples.keys())
-positions = [samples[t]['position'][0] for t in times]
-velocities = np.diff(positions) / np.diff(times)
-
-# Calculate acceleration
-accelerations = np.diff(velocities) / np.diff(times[:-1])
-</code></pre>
-<h3 id="multi-animation-blending">Multi-Animation Blending</h3>
-<pre><code class="language-python">class AnimationMixer:
-    def __init__(self):
-        self.players = {}
-
-    def add_animation(self, name, path, weight=1.0):
-        self.players[name] = {
-            'player': AnimationPlayer(path),
-            'weight': weight
-        }
-
-    def sample(self, time):
-        result = {}
-        for name, data in self.players.items():
-            frame, valid = data['player'].play_frame(time)
-            if valid:
-                weight = data['weight']
-                for key, value in frame.items():
-                    if key not in result:
-                        result[key] = 0
-                    result[key] += value * weight
-        return result
-</code></pre>
 <h3 id="real-time-animation-control">Real-time Animation Control</h3>
 <pre><code class="language-python">import time
 from unity_animation_player import AnimationPlayer
@@ -514,72 +588,163 @@ while True:
 
     time.sleep(1/60)  # 60 FPS
 </code></pre>
-<h3 id="exporting-animation-curve-data">Exporting Animation Curve Data</h3>
-<pre><code class="language-python">import json
-
-def export_animation_curves(player, path, output_file):
-    &quot;&quot;&quot;Export animation curves to JSON format&quot;&quot;&quot;
-    curves = player.anim.get(path, {})
-    export_data = {}
-
-    for curve_type, segments in curves.items():
-        export_data[curve_type] = []
-        for axis, seg_list in segments.items():
-            points = []
-            for seg in seg_list:
-                # Sample each curve segment
-                t = seg.x_interval[0]
-                while t &lt;= seg.x_interval[1]:
-                    points.append([t, float(seg(t))])
-                    t += 0.01
-            export_data[curve_type].append({
-                'axis': axis,
-                'points': points
-            })
-
-    with open(output_file, 'w') as f:
-        json.dump(export_data, f, indent=2)
+<hr />
+<h2 id="interpolation-system">Interpolation System</h2>
+<h3 id="supported-curve-types">Supported Curve Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th>Interpolation Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PositionCurves</td>
+<td>Position curves (X, Y, Z)</td>
+<td>Rational Bezier / Hermite</td>
+</tr>
+<tr>
+<td>RotationCurves</td>
+<td>Rotation curves (quaternion)</td>
+<td>Spherical Linear (SLERP)</td>
+</tr>
+<tr>
+<td>EulerCurves</td>
+<td>Euler angle curves</td>
+<td>Euler SLERP / Axis-angle</td>
+</tr>
+<tr>
+<td>ScaleCurves</td>
+<td>Scale curves (X, Y, Z)</td>
+<td>Rational Bezier / Hermite</td>
+</tr>
+<tr>
+<td>FloatCurves</td>
+<td>Float curves</td>
+<td>Rational Bezier / Hermite</td>
+</tr>
+</tbody>
+</table>
+<h3 id="interpolation-classes">Interpolation Classes</h3>
+<h4 id="rationalbezierinterpolation">RationalBezierInterpolation</h4>
+<p>Factory function for rational Bezier curve interpolation.</p>
+<pre><code class="language-python">RationalBezierInterpolation(x0, x1, y0, y1, k0, k1, w0=1.0, w1=1.0, w2=1.0, w3=1.0)
 </code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x0, x1</td>
+<td>Start and end time values</td>
+</tr>
+<tr>
+<td>y0, y1</td>
+<td>Start and end values</td>
+</tr>
+<tr>
+<td>k0, k1</td>
+<td>Start and end slopes</td>
+</tr>
+<tr>
+<td>w0-w3</td>
+<td>Weight parameters (default 1.0)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="sphericallinearinterpolation">SphericalLinearInterpolation</h4>
+<p>Factory function for quaternion SLERP interpolation.</p>
+<pre><code class="language-python">SphericalLinearInterpolation(x0, y0, z0, w0, x1, y1, z1, w1, t0=0.0, t1=1.0, force_axis_angle=False)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x0,y0,z0,w0</td>
+<td>Start quaternion components</td>
+</tr>
+<tr>
+<td>x1,y1,z1,w1</td>
+<td>End quaternion components</td>
+</tr>
+<tr>
+<td>t0, t1</td>
+<td>Time range for automatic normalization</td>
+</tr>
+<tr>
+<td>force_axis_angle</td>
+<td>Force axis-angle mode for 360° rotations</td>
+</tr>
+</tbody>
+</table>
+<h4 id="eulersphericallinearinterpolation">EulerSphericalLinearInterpolation</h4>
+<p>Factory function for Euler angle SLERP interpolation.</p>
+<pre><code class="language-python">EulerSphericalLinearInterpolation(euler_x0, euler_y0, euler_z0, euler_x1, euler_y1, euler_z1, t0=0.0, t1=1.0, axis=None)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>euler_*0</td>
+<td>Start Euler angles (degrees)</td>
+</tr>
+<tr>
+<td>euler_*1</td>
+<td>End Euler angles (degrees)</td>
+</tr>
+<tr>
+<td>t0, t1</td>
+<td>Time range for automatic normalization</td>
+</tr>
+<tr>
+<td>axis</td>
+<td>Optional axis for 360° rotation ('x','y','z')</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="performance-optimization">Performance Optimization</h2>
 <h3 id="yaml-caching">YAML Caching</h3>
-<p>Parsed animation data is cached to a temporary directory with SHA256 checksum validation, automatically determining cache validity.</p>
+<p>Parsed animation data is cached to a temporary directory with SHA256 checksum validation.</p>
 <p>Cache location:</p>
 <ul>
 <li>Windows: <code>%TEMP%/unity_animation_player_python/</code></li>
 <li>Linux/Mac: <code>/tmp/unity_animation_player_python/</code></li>
 </ul>
-<h3 id="jit-compilation">JIT Compilation</h3>
-<p>Core interpolation algorithms use numba JIT compilation for significant performance improvements.</p>
+<h3 id="jit-compilation-with-numba">JIT Compilation with Numba</h3>
+<p>Core interpolation algorithms use numba JIT compilation:</p>
 <pre><code class="language-python"># config.py
-USE_JIT = True
+USE_JIT = True   # Enable JIT (requires numba)
 </code></pre>
-<p>First call triggers compilation, subsequent calls execute machine code directly.</p>
+<p>When enabled, the following are JIT-compiled:
+- <code>binary_search_segment_index</code> - Fast time segment lookup
+- <code>_RationalBezierInterpolator</code> - Rational Bezier evaluation
+- <code>_SphericalLinearInterpolator</code> - SLERP quaternion evaluation
+- <code>_AxisAngleInterpolator</code> - Axis-angle rotation evaluation</p>
 <h3 id="pyyaml-cloader">PyYAML CLoader</h3>
-<p>Use LibYAML's C accelerator for YAML parsing:</p>
+<p>Use LibYAML's C accelerator for faster YAML parsing:</p>
 <pre><code class="language-python">data = yaml.load(content, Loader=yaml.CLoader)
-</code></pre>
-<h3 id="batch-sampling-optimization">Batch Sampling Optimization</h3>
-<pre><code class="language-python"># Pre-allocate arrays to avoid dynamic resizing
-import numpy as np
-
-def fast_sample_range(player, sample_rate=0.01):
-    n_samples = int(player.stop_time / sample_rate) + 1
-    positions = np.zeros((n_samples, 2))
-    times = np.zeros(n_samples)
-
-    for i, t in enumerate(np.arange(0, player.stop_time, sample_rate)):
-        result, valid = player.play_frame(t)
-        if valid and 'position' in result:
-            positions[i] = result['position']
-            times[i] = t
-
-    return times, positions
 </code></pre>
 <hr />
 <h2 id="gui-integration">GUI Integration</h2>
-<h3 id="basic-usage_1">Basic Usage</h3>
-<pre><code class="language-python">from PySide6.QtCore import Signal
+<h3 id="signalanimationplayer-with-qt">SignalAnimationPlayer with Qt</h3>
+<pre><code class="language-python">from PySide6.QtCore import Signal, QApplication
 from unity_animation_player import SignalAnimationPlayer
 
 class MyWidget(QWidget):
@@ -598,25 +763,30 @@ class MyWidget(QWidget):
         if data.get('playable'):
             position = data.get('position')
             # Update UI element position
-            self.move(*position)
+            if position:
+                self.move(int(position[0]), int(position[1]))
 
     def start_animation(self):
-        self.player.play()
+        self.player.play()  # mode=1 forward from t=0
 </code></pre>
-<h3 id="popup-window-example">Popup Window Example</h3>
-<pre><code class="language-python">from unity_animation_player import PopupWindow
+<h3 id="custom-popupwindow-base-class">Custom PopupWindow Base Class</h3>
+<pre><code class="language-python">from unity_animation_player import PopupWindow  # Note: Custom class in examples
 
 class MyPopup(PopupWindow):
     def __init__(self):
-        super().__init__(anim=&quot;popup.anim&quot;, path=&quot;Center/Popup&quot;)
-        # Window will automatically play popup animation
+        super().__init__(darkScreen=True)
+        self.play_anim(
+            anim=&quot;popup.anim&quot;,
+            path=&quot;Center/Popup&quot;,
+            position_ratio=(1, 0.5)
+        )
 </code></pre>
 <hr />
 <h2 id="examples">Examples</h2>
 <p>Run <code>example.py</code> to view all examples:</p>
 <pre><code class="language-bash">python example.py
 </code></pre>
-<p>The program will list available examples, including:</p>
+<p>Available examples:</p>
 <table>
 <thead>
 <tr>
@@ -631,7 +801,7 @@ class MyPopup(PopupWindow):
 </tr>
 <tr>
 <td><code>pygame_viewer</code></td>
-<td>Pygame-based animation viewer</td>
+<td>Pygame-based animation viewer with keyboard controls</td>
 </tr>
 <tr>
 <td><code>pyside_popup_window</code></td>
@@ -643,144 +813,90 @@ class MyPopup(PopupWindow):
 </tr>
 </tbody>
 </table>
-<p>Select the corresponding number to run.</p>
 <hr />
 <h2 id="api-reference">API Reference</h2>
 <h3 id="animationplayer_1">AnimationPlayer</h3>
-<p><strong>Properties</strong></p>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>anim</td>
-<td>dict</td>
-<td>Parsed animation data</td>
-</tr>
-<tr>
-<td>stop_time</td>
-<td>float</td>
-<td>Animation end time</td>
-</tr>
-<tr>
-<td>events</td>
-<td>AnimationEvents</td>
-<td>Event manager</td>
-</tr>
-</tbody>
-</table>
 <p><strong>Methods</strong></p>
 <h4 id="play_frame">play_frame</h4>
 <pre><code class="language-python">play_frame(nowtime: float, **kwargs) -&gt; Tuple[dict, bool]
 </code></pre>
 <p>Get animation state at specified time.</p>
-<p><strong>Parameters</strong></p>
-<ul>
-<li><code>nowtime</code>: Time point (seconds)</li>
-<li><code>**kwargs</code>: Playback parameters (see PlayKwargs)</li>
-</ul>
-<p><strong>Returns</strong></p>
-<ul>
-<li><code>dict</code>: Animation state data</li>
-<li><code>bool</code>: Whether time point is valid</li>
-</ul>
+<p><strong>Parameters</strong>
+- <code>nowtime</code>: Time point (seconds)
+- <code>**kwargs</code>: Playback parameters (see PlayKwargsDict)</p>
+<p><strong>Returns</strong>
+- <code>dict</code>: Animation state data with keys: position, scale, rotation, euler, float, events
+- <code>bool</code>: Whether time point is valid</p>
 <h4 id="sample_range">sample_range</h4>
 <pre><code class="language-python">sample_range(sample_rate: float = 0.01, t_start: float = None, t_end: float = None, **kwargs) -&gt; dict
 </code></pre>
 <p>Batch sample animation data.</p>
-<p><strong>Returns</strong></p>
-<ul>
-<li><code>dict</code>: Dictionary of <code>{time: animation_data}</code></li>
-</ul>
+<p><strong>Returns</strong>
+- <code>dict</code>: Dictionary of <code>{time: animation_data}</code></p>
 <h4 id="register_event">register_event</h4>
 <pre><code class="language-python">register_event(function_name: str, function: Callable, args: tuple = ())
 </code></pre>
 <p>Register event callback function.</p>
-<p><strong>Parameters</strong></p>
-<ul>
-<li><code>function_name</code>: Event name (matches functionName in animation file)</li>
-<li><code>function</code>: Callback function</li>
-<li><code>args</code>: Tuple of event parameter names to pass to callback</li>
-</ul>
+<p><strong>Parameters</strong>
+- <code>function_name</code>: Event name (matches functionName in animation file)
+- <code>function</code>: Callback function
+- <code>args</code>: Tuple of event parameter names to pass to callback</p>
+<h4 id="add_event">add_event</h4>
+<pre><code class="language-python">add_event(delay: float, *kwargs)
+</code></pre>
+<p>Dynamically add an event.</p>
+<h4 id="return_default">return_default</h4>
+<pre><code class="language-python">return_default(default_value: float = 0.0, default_scale: float = 1.0, **kwargs) -&gt; Tuple[dict, bool]
+</code></pre>
+<p>Return default values when animation is outside valid time range.</p>
 <h3 id="signalanimationplayer_1">SignalAnimationPlayer</h3>
 <p><strong>Methods</strong></p>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>play(t: float = None, mode: int = None)</code></td>
-<td>Start playback</td>
-</tr>
-<tr>
-<td><code>stop()</code></td>
-<td>Stop playback</td>
-</tr>
-<tr>
-<td><code>set_mode(mode: int                         | float)</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>set_time(t: float)</code></td>
-<td>Jump to specified time</td>
-</tr>
-</tbody>
-</table>
+<h4 id="play">play</h4>
+<pre><code class="language-python">play(t: float = None, mode: Union[int, float] = None)
+</code></pre>
+<p>Start playback.</p>
+<p><strong>Parameters</strong>
+- <code>t</code>: Start time (if None, starts at 0 for mode&gt;=0 or stop_time for mode&lt;0)
+- <code>mode</code>: Playback speed/direction (1=forward, -1=reverse, 0=stop)</p>
+<h4 id="stop">stop</h4>
+<pre><code class="language-python">stop()
+</code></pre>
+<p>Stop playback.</p>
+<h4 id="set_mode">set_mode</h4>
+<pre><code class="language-python">set_mode(mode: Union[int, float])
+</code></pre>
+<p>Set playback speed and direction.</p>
+<h4 id="set_time">set_time</h4>
+<pre><code class="language-python">set_time(t: float)
+</code></pre>
+<p>Jump to specified time.</p>
+<h3 id="utility-functions">Utility Functions</h3>
+<h4 id="type_kwargs">type_kwargs</h4>
+<pre><code class="language-python">type_kwargs(**kwargs) -&gt; PlayKwargsDict
+</code></pre>
+<p>Normalize keyword arguments with default values. Converts string units to tuple format when appropriate.</p>
 <hr />
 <h2 id="file-format-support">File Format Support</h2>
-<h3 id="supported-animation-curve-types">Supported Animation Curve Types</h3>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>PositionCurves</td>
-<td>Position curves</td>
-</tr>
-<tr>
-<td>RotationCurves</td>
-<td>Rotation curves (quaternion)</td>
-</tr>
-<tr>
-<td>EulerCurves</td>
-<td>Euler angle curves</td>
-</tr>
-<tr>
-<td>ScaleCurves</td>
-<td>Scale curves</td>
-</tr>
-<tr>
-<td>FloatCurves</td>
-<td>Float curves</td>
-</tr>
-</tbody>
-</table>
-<h3 id="supported-interpolation-types">Supported Interpolation Types</h3>
+<h3 id="unity-yaml-format">Unity YAML Format</h3>
+<p>The library parses Unity's YAML-based .anim files with support for:</p>
 <ul>
-<li>Linear interpolation</li>
-<li>Bezier curves</li>
-<li>Rational Bezier curves (with weight support)</li>
-<li>Constant values (handling infinite slopes)</li>
+<li><code>AnimationClip</code> root object</li>
+<li><code>m_RotationCurves</code> - Quaternion rotation curves (SLERP interpolation)</li>
+<li><code>m_EulerCurves</code> - Euler angle curves</li>
+<li><code>m_PositionCurves</code> - Position curves</li>
+<li><code>m_ScaleCurves</code> - Scale curves</li>
+<li><code>m_FloatCurves</code> - Float curves</li>
+<li><code>m_Events</code> - Animation events</li>
+</ul>
+<h3 id="yaml-parsing-features">YAML Parsing Features</h3>
+<ul>
+<li>Removes <code>%TAG</code> directives</li>
+<li>Converts <code>--- !u!XX &amp;YYY</code> to <code>--- &amp;YYY</code> for cleaner parsing</li>
+<li>Prevents parsing "y" as boolean (treats as string)</li>
 </ul>
 <hr />
 <h2 id="license">License</h2>
-<p>MIT License</p>
-<hr />
-<h2 id="contributing">Contributing</h2>
-<p>Issues and Pull Requests are welcome.</p></div>
+<p>MIT License</p></div>
             </div>
         </div>
 
@@ -862,5 +978,5 @@ class MyPopup(PopupWindow):
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-06-08 04:12:31.573761+00:00
+Build Date UTC : 2026-06-14 15:01:09.345437+00:00
 -->
