@@ -1,6 +1,12 @@
 import os
+import sys
 import pygame
 from pygame.locals import *
+
+# Ensure src/ is on the path for unity_animation_player imports
+_src_path = os.path.join(os.path.dirname(__file__), '..', 'src')
+if _src_path not in sys.path:
+    sys.path.insert(0, os.path.abspath(_src_path))
 
 from unity_animation_player import AnimationPlayer
 
@@ -377,6 +383,10 @@ class AnimationTest:
         
         pygame.quit()
 
-# Run program
-app = AnimationTest()
-app.run()
+def main():
+    app = AnimationTest()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,3 +1,11 @@
+import os
+import sys
+
+# Ensure src/ is on the path for unity_animation_player imports
+_src_path = os.path.join(os.path.dirname(__file__), '..', 'src')
+if _src_path not in sys.path:
+    sys.path.insert(0, os.path.abspath(_src_path))
+
 # Base Class
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, Signal
@@ -78,4 +86,6 @@ def main():
     window.show()
     sys.exit(app.exec_())
 
-main()
+
+if __name__ == "__main__":
+    main()

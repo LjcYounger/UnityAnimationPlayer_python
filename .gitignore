@@ -1,5 +1,5 @@
 */__pycache__
-unity_animation_player/__pycache__
+src/unity_animation_player/__pycache__
 test*.py
 PREVIOUS
 *.drawio
@@ -8,5 +8,8 @@ PREVIOUS
 constant_test
 site
 dist
+*.egg-info
 *.pyc
 setup.py
+build/
+.eggs/

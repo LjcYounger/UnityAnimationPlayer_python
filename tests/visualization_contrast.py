@@ -1,8 +1,15 @@
+import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from matplotlib.lines import Line2D
 import time
+
+# Ensure src/ is on the path for unity_animation_player imports
+_src_path = os.path.join(os.path.dirname(__file__), '..', 'src')
+if _src_path not in sys.path:
+    sys.path.insert(0, os.path.abspath(_src_path))
 
 # Import your original AnimationPlayer without modification
 from unity_animation_player import AnimationPlayer

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unity-animation-player"
+dynamic = ["version"]
+description = "Play Unity animation files (.anim) in Python with Hermite spline interpolation, event system, and GUI integration"
+readme = "README.md"
+license = {text = "MIT"}
+keywords = ["unity", "animation", ".anim", "bezier", "interpolation", "pyside6", "pygame"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyyaml",
+    "numpy",
+]
+
+[project.optional-dependencies]
+numba_acceleration = ["numba"]
+with_signal = ["qtpy"]
+full = [
+    "numba_acceleration",
+    "with_signal",
+]
+
+[project.urls]
+Homepage = "https://github.com/LjcYounger/UnityAnimationPlayer_python"
+Documentation = "https://ljcyounger.github.io/UnityAnimationPlayer_python/"
+
+[tool.setuptools.dynamic]
+version = {attr = "unity_animation_player.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["unity_animation_player", "unity_animation_player.*"]

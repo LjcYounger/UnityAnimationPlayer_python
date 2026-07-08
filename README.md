@@ -100,6 +100,28 @@ player.register_event('eventTriggered', on_event, ('data', 'floatParameter'))
 - Numba JIT compilation for core interpolation
 - PyYAML CLoader for fast YAML parsing
 
+## Installation
+
+### From PyPI
+
+```bash
+pip install unity-animation-player
+```
+
+With optional dependencies:
+
+```bash
+pip install unity-animation-player[full]       # Install all extras
+pip install unity-animation-player[numba_acceleration]  # With numba JIT
+pip install unity-animation-player[with_signal]         # With signal support (Qt)
+```
+
+### From Source
+
+```bash
+pip install git+https://github.com/LjcYounger/UnityAnimationPlayer_python.git
+```
+
 ## Requirements
 
 - Python >= 3.8
@@ -107,17 +129,6 @@ player.register_event('eventTriggered', on_event, ('data', 'floatParameter'))
 - PyYAML
 - PySide6 (for GUI features)
 - numba (optional, for JIT acceleration)
-
-## Installation
-
-```bash
-pip install numpy pyyaml PySide6
-```
-
-For optimal performance:
-```bash
-pip install numba
-```
 
 ## Advanced Features
 

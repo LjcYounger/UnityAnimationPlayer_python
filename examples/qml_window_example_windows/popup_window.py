@@ -1,3 +1,11 @@
+import os
+import sys
+
+# Ensure src/ is on the path for unity_animation_player imports
+_src_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src')
+if _src_path not in sys.path:
+    sys.path.insert(0, os.path.abspath(_src_path))
+
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, Signal
 from unity_animation_player import SignalAnimationPlayer
@@ -10,12 +18,12 @@ from .dark_screen_window import DarkScreenWindow
 class PopupWindow(QWidget):
     anim_signal = Signal(dict)
 
-    def __init__(self, darkScreen=True, parent=None):
+    def __init__(self, dark_screen=True, parent=None):
         super().__init__(parent=parent)
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.animation_player = None
         self.dark_screen_window = None
-        if darkScreen:
+        if dark_screen:
             self.dark_screen_window = DarkScreenWindow()
             self.dark_screen_window.show()
 
@@ -39,4 +47,5 @@ class PopupWindow(QWidget):
         self.move(*[int(x - y) for x, y in zip(self.position0, position)])
 
     def closeEvent(self, event):
-        self.dark_screen_window.close()
+        if self.dark_screen_window:
+            self.dark_screen_window.close()

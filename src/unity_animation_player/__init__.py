@@ -1,3 +1,5 @@
+__version__ = "0.1.0"
+
 from .animation_player import AnimationPlayer
 from .signal_animation_player import SignalAnimationPlayer
 from .animation_events import AnimationEvents

@@ -2,6 +2,14 @@ from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass
 import time
+import platform
+import os
+import sys
+
+# Ensure src/ is on the path for unity_animation_player imports
+_src_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src')
+if _src_path not in sys.path:
+    sys.path.insert(0, os.path.abspath(_src_path))
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 from PySide6.QtCore import Qt, QUrl, Slot, Signal, QObject
@@ -9,11 +17,12 @@ from PySide6.QtQuickWidgets import QQuickWidget
 
 # 导入消息处理相关模块
 from PySide6.QtCore import qInstallMessageHandler, QtMsgType
-import os
 
 from unity_animation_player import SignalAnimationPlayer
 from .popup_window import PopupWindow
 from .graph_window import AnimGraphWidget
+
+DARK_SCREEN_WINDOW = platform.system() == "Windows"
 
 def timer(func):
     @wraps(func)  # 保留原函数的元数据
@@ -73,7 +82,7 @@ class ExampleWindow(PopupWindow):
     button_data_dict = {}
     ball_animation_signal = Signal(dict)
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(dark_screen=DARK_SCREEN_WINDOW)
         self.setWindowTitle("Animation Window Demo")
         self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, False)
         init_size = (800, 400)
@@ -181,7 +190,7 @@ class ExampleWindow(PopupWindow):
 
 class ChildWindow(PopupWindow):
     def __init__(self):
-        super().__init__()
+        super().__init__(dark_screen=DARK_SCREEN_WINDOW)
         self.setWindowTitle("Notice")
         self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, False)
         self.setWindowModality(Qt.ApplicationModal)

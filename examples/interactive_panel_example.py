@@ -1,6 +1,17 @@
 import os
 import sys
 from pathlib import Path
+
+# Ensure src/ is on the path for unity_animation_player imports
+_src_path = os.path.join(os.path.dirname(__file__), '..', 'src')
+if _src_path not in sys.path:
+    sys.path.insert(0, os.path.abspath(_src_path))
+
+# Ensure examples/ is on the path when running directly
+_examples_dir = os.path.dirname(os.path.abspath(__file__))
+if _examples_dir not in sys.path:
+    sys.path.insert(0, _examples_dir)
+
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QFrame, QCheckBox, QDoubleSpinBox, QPushButton, QTextEdit
@@ -12,7 +23,7 @@ import pyqtgraph as pg
 import qdarkstyle
 
 from unity_animation_player import AnimationPlayer, type_kwargs
-from .qml_window_example_windows.graph_window import AnimGraphWidget
+from qml_window_example_windows.graph_window import AnimGraphWidget
 
 class InteractivePanel(QWidget):
 
@@ -793,4 +804,5 @@ def main():
     sys.exit(app.exec())
 
 
-main()
+if __name__ == "__main__":
+    main()
