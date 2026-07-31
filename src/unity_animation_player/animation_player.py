@@ -7,7 +7,7 @@ import numpy as np
 from .parse_yaml import parse_anim
 from .cache_yaml import load_yaml
 
-from .kwargs import type_kwargs
+from .kwargs import type_kwargs, PlayKwargs
 from .animation_events import AnimationEvents
 from .numba_optimized.binary_search import binary_search_segment_index
 @lru_cache(maxsize=64)
@@ -24,6 +24,8 @@ class AnimationPlayer:
         self.events = AnimationEvents(raw_events)
 
         self.registered_events = {}
+        self._cache_dict = {}
+        self.use_cache = False
 
         if stop_time is not None:
             self.stop_time = stop_time
@@ -37,21 +39,22 @@ class AnimationPlayer:
         nowtime1 = nowtime
         if typed_kwargs['time_reverse']:
             nowtime = self.stop_time - nowtime
+
+        
         if nowtime1 <= self.stop_time and nowtime1 >= 0:
             dic: Dict[str, Any] = {}
             ani = self.anim[typed_kwargs['path']]
             if 'Euler' in ani:
-                e, time_nodes = ani.get('Euler')
-
+                if self.use_cache:
+                    euler_result = self._cache_dict[typed_kwargs['path']][nowtime]['euler']
+                else:
+                    e, time_nodes = ani.get('Euler')
+                    euler_result = self._get_seg_result(e, nowtime, time_nodes)
                 euler_unit = typed_kwargs['euler_unit']
-                # 欧拉角插值器返回 (ex, ey, ez) 元组
-                euler_result = self._get_seg_result(e, nowtime, time_nodes)
                 if isinstance(euler_unit, tuple):
-                    # 提取指定的分量
                     unit_indices = {'x': 0, 'y': 1, 'z': 2}
                     euler = tuple(euler_result[unit_indices[unit]] for unit in euler_unit)
                 else:
-                    # 返回全部分量或指定分量
                     unit_index = {'x': 0, 'y': 1, 'z': 2}.get(euler_unit, None)
                     euler = euler_result[unit_index] if unit_index is not None else euler_result
                 dic['euler'] = euler
@@ -60,14 +63,11 @@ class AnimationPlayer:
                 r, time_nodes = ani.get('Rotation')
 
                 rotation_unit = typed_kwargs['rotation_unit']
-                # 四元数插值器返回 (qx, qy, qz, qw) 元组
                 rotation_result = self._get_seg_result(r, nowtime, time_nodes)
                 if isinstance(rotation_unit, tuple):
-                    # 提取指定的分量
                     unit_indices = {'x': 0, 'y': 1, 'z': 2, 'w': 3}
                     rotation = tuple(rotation_result[unit_indices[unit]] for unit in rotation_unit)
                 else:
-                    # 返回全部分量或指定分量
                     unit_index = {'x': 0, 'y': 1, 'z': 2, 'w': 3}.get(rotation_unit, None)
                     rotation = rotation_result[unit_index] if unit_index is not None else rotation_result
                 dic['rotation'] = rotation
@@ -141,14 +141,6 @@ class AnimationPlayer:
             self.events.reset_events()
             return {}, False
 
-    def _get_seg_result(self, segments: Any, t: float, time_nodes: Optional[np.ndarray] = None) -> float:
-        """Binary search to find segmented interpolation result using Numba acceleration"""
-        if not segments:
-            return 0.0
-        
-        segment_index = binary_search_segment_index(time_nodes, t)
-        return segments[segment_index](t)
-
     def return_default(self,
                        default_value: float = 0.0, default_scale=1.0,
                        **kwargs: Union[str, bool, Tuple, float]) -> Tuple[Dict[str, Any], bool]:
@@ -193,9 +185,31 @@ class AnimationPlayer:
         t_end = self.stop_time if t_end is None else t_end
         sample_points = {t: self.play_frame(t, **kwargs)[0] for t in np.arange(t_start, t_end, sample_rate)}
         return sample_points
-    
+
+    def create_cache(self, sample_rate=0.01):
+        """
+        Create a cache of sampled animation frames for faster playback.
+        The cache is stored in self._cache_dict with the sample time as the key and the frame data as the value.
+        """
+        for path in self.anim.keys():
+            self._cache_dict[path] = list(self.sample_range(sample_rate=sample_rate, t_start=None, t_end=None, 
+                                                      **{'path': path, 
+                                                         'euler_unit': PlayKwargs.full_euler_unit,
+                                                         'rotation_unit': PlayKwargs.full_rotation_unit,
+                                                         'position_unit': PlayKwargs.full_position_unit,
+                                                         'scale_unit': PlayKwargs.full_scale_unit}).values())
+        self.use_cache = True
+
     def add_event(self, delay, *kwargs):
         self.events.add_event(delay, *kwargs)
 
     def register_event(self, function_name: str, function: Callable, args: Tuple[Literal['data', 'floatParameter', 'intParameter', 'messageOptions'], ...] = ()):
         self.registered_events[function_name] = (function, args)
+
+    def _get_seg_result(self, segments: Any, t: float, time_nodes: Optional[np.ndarray] = None) -> float:
+            """Binary search to find segmented interpolation result using Numba acceleration"""
+            if not segments:
+                return 0.0
+            
+            segment_index = binary_search_segment_index(time_nodes, t)
+            return segments[segment_index](t)
