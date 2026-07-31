@@ -13,3 +13,8 @@ dist
 setup.py
 build/
 .eggs/
+
+examples/AnimationClip/Hihumi_Original_TSS_Interaction01.anim
+examples/AnimationClip/Hihumi_Original_Victory_Start.anim
+examples/AnimationClip/UIAni_Emo_Sc_Dot.anim
+examples/AnimationClip/UIAni_MainStoryStageListItemUnlock.anim
