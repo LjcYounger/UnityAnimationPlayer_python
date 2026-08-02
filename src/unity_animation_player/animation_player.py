@@ -51,6 +51,7 @@ class AnimationPlayer:
                     e, time_nodes = ani.get('Euler')
                     euler_result = self._get_seg_result(e, nowtime, time_nodes)
                 euler_unit = typed_kwargs['euler_unit']
+                euler_result = self._get_seg_result(e, nowtime, time_nodes)
                 if isinstance(euler_unit, tuple):
                     unit_indices = {'x': 0, 'y': 1, 'z': 2}
                     euler = tuple(euler_result[unit_indices[unit]] for unit in euler_unit)
