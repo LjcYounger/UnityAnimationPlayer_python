@@ -81,9 +81,9 @@ def load_yaml(path: str, cache=True):
         # regenerate
         with open(path, 'r', encoding='utf-8') as y:
             content = y.read()
-            # 移除 %TAG 指令行
+            # Remove %TAG directive lines
             content = re.sub(r'^%TAG.*\n', '', content, flags=re.MULTILINE)
-            # 将 "--- !u!XX &YYY" 替换为 "--- &YYY"
+            # Replace "--- !u!XX &YYY" with "--- &YYY"
             content = re.sub(r'^--- !u!\d+ (&?\S*)', r'--- \1', content, flags=re.MULTILINE)
 
             data = yaml.load(content, Loader=yaml.CLoader)

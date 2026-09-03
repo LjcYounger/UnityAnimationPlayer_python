@@ -104,34 +104,34 @@ def piecewise_hermite(x_points, y_points,
 
 def piecewise_slerp(x_points, value_components, tangentMode, interpolation_type='quaternion'):
     """
-    处理旋转曲线的分段 SLERP 插值（通用函数）
-    
-    参数:
-        x_points: 时间点数组
-        value_components: 值分量字典
-            - 四元数: {'x': (...), 'y': (...), 'z': (...), 'w': (...)}
-            - 欧拉角: {'x': (...), 'y': (...), 'z': (...)}
-        tangentMode: 切线模式数组
-        interpolation_type: 插值类型，'quaternion' 或 'euler'
-    
-    返回:
-        MixedSegment 列表
-        - 四元数类型：每个 segment 返回 (qx, qy, qz, qw)
-        - 欧拉角类型：每个 segment 返回 (ex, ey, ez)
+    Perform piecewise SLERP interpolation of rotation curves (generic function).
+
+    Args:
+        x_points: Array of time points.
+        value_components: Dict of value components.
+            - Quaternion: {'x': (...), 'y': (...), 'z': (...), 'w': (...)}
+            - Euler angles: {'x': (...), 'y': (...), 'z': (...)}
+        tangentMode: Array of tangent modes.
+        interpolation_type: Interpolation type, either 'quaternion' or 'euler'.
+
+    Returns:
+        List of MixedSegment objects.
+        - Quaternion type: each segment returns (qx, qy, qz, qw).
+        - Euler angle type: each segment returns (ex, ey, ez).
     """
     x_points = np.array(x_points, dtype=float)
     n = len(x_points)
     if n < 2:
         return []
     
-    # 提取各分量
+    # Extract the individual components
     components = {key: np.array(value_components[key], dtype=float) for key in value_components.keys()}
     
     tangentMode = np.array(tangentMode, dtype=float)
     
     segments = []
     
-    # 根据 tangentMode 确定分段点
+    # Determine the segment breakpoints based on tangentMode
     break_indices = np.where(tangentMode != 1.0)[0]
     indices = [0] + list(break_indices) + [n - 1]
     indices = sorted(set(indices))
@@ -143,21 +143,22 @@ def piecewise_slerp(x_points, value_components, tangentMode, interpolation_type=
         if i1 <= i0:
             continue
         
-        # 对每个区间创建 SLERP 插值器
+        # Create a SLERP interpolator for each interval
         for k in range(i0, i1):
             x0, x1 = x_points[k], x_points[k+1]
             
-            # 获取起始和结束值
+            # Get the start and end values
             start_values = tuple(components[key][k] for key in sorted(components.keys()))
             end_values = tuple(components[key][k+1] for key in sorted(components.keys()))
             
-            # 根据类型创建对应的插值器（直接传入时间范围，自动处理归一化）
+            # Create the matching interpolator based on the type
+            # (pass the time range directly; normalization is handled automatically)
             if interpolation_type == 'quaternion':
                 slerp_func = SphericalLinearInterpolation(*start_values, *end_values, x0, x1)
             else:  # euler
                 slerp_func = EulerSphericalLinearInterpolation(*start_values, *end_values, x0, x1)
             
-            # 直接使用插值器，无需额外的闭包包装
+            # Use the interpolator directly without extra closure wrapping
             segments.append(MixedSegment(x0, x1, slerp_func))
     
     return segments
@@ -181,7 +182,7 @@ def _parse_m_Curve(m_Curve_list, m_XCurves_name='m_PositionCurves'):
     time_nodes = np.array(parameter_dict["time"])
     
     if m_XCurves_name in ('m_RotationCurves', 'm_EulerCurves'):
-        # 旋转曲线使用 SLERP 插值
+        # Rotation curves use SLERP interpolation
         interpolation_type = 'quaternion' if m_XCurves_name == 'm_RotationCurves' else 'euler'
         interpolation_list = piecewise_slerp(
             parameter_dict["time"],
@@ -190,7 +191,7 @@ def _parse_m_Curve(m_Curve_list, m_XCurves_name='m_PositionCurves'):
             interpolation_type
         )
     elif isinstance(parameter_dict["value"], dict):
-        # 向量类型（如 Position, Scale）的分量插值
+        # Per-component interpolation for vector types (e.g., Position, Scale)
         interpolation_list = {}
         for comp in parameter_dict["value"].keys():
             args = (
@@ -205,7 +206,7 @@ def _parse_m_Curve(m_Curve_list, m_XCurves_name='m_PositionCurves'):
             )
             interpolation_list[comp] = piecewise_hermite(*args)
     else:
-        # 标量类型插值
+        # Scalar type interpolation
         args = (
             parameter_dict["time"],
             parameter_dict["value"],

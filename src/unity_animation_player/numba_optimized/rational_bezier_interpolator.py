@@ -15,7 +15,7 @@ else:
     float64 = float
 
 
-# 定义类的字段类型规范
+# Define the field type spec of the class
 spec = [
     ('x0', float64),
     ('x1', float64),
@@ -35,17 +35,17 @@ spec = [
 @jitclass(spec)
 class _RationalBezierInterpolator:
     """
-    有理贝塞尔插值器核心（Numba JIT 编译版本）
-    
-    通过预计算控制点参数，避免每次调用都重新计算。
-    这是一个内部类，外部使用 RationalBezierInterpolation 工厂函数
+    Core rational Bezier interpolator (Numba JIT compiled version).
+
+    Precomputes the control point parameters so they are not recomputed on every call.
+    This is an internal class; use the RationalBezierInterpolation factory function externally.
     """
     
     def __init__(self, x0: float, x1: float, 
                  y0: float, y1: float, 
                  k0: float, k1: float, 
                  w0: float = 1.0, w1: float = 1.0, w2: float = 1.0, w3: float = 1.0):
-        # 保存端点和权重
+        # Store the endpoints and weights
         self.x0 = x0
         self.x1 = x1
         self.y0 = y0
@@ -55,7 +55,7 @@ class _RationalBezierInterpolator:
         self.w2 = w2
         self.w3 = w3
         
-        # 预计算控制点
+        # Precompute the control points
         dx = x1 - x0
         t_param = 1.0 / 3.0
         
@@ -67,19 +67,19 @@ class _RationalBezierInterpolator:
     
     def evaluate(self, t: float) -> float:
         """
-        计算给定 t 值对应的 y 值
-        
-        参数:
-            t: 时间参数，范围通常在 [x0, x1]
-        
-        返回:
-            插值后的 y 值
+        Compute the y value corresponding to the given t.
+
+        Args:
+            t: Time parameter, typically in the range [x0, x1].
+
+        Returns:
+            The interpolated y value.
         """
         return self._hermite_spline_core(t)
     
     def _hermite_spline_core(self, t: float) -> float:
         """
-        Hermite 样条核心计算（牛顿法求解）
+        Core Hermite spline computation (solved with Newton's method).
         """
         x0 = self.x0
         x1 = self.x1
@@ -94,18 +94,18 @@ class _RationalBezierInterpolator:
         w2 = self.w2
         w3 = self.w3
         
-        # 构造三次方程系数
+        # Build the cubic equation coefficients
         a = w3*(x1-t) - 3*w2*(x2_ctl-t) + 3*w1*(x1_ctl-t) - w0*(x0-t)
         b = 3*w2*(x2_ctl-t) - 6*w1*(x1_ctl-t) + 3*w0*(x0-t)
         c = 3*w1*(x1_ctl-t) - 3*w0*(x0-t)
         d = w0*(x0-t)
         
-        # 牛顿法求解 u
+        # Solve for u using Newton's method
         u = 0.5
         for _ in range(10):
             f = ((a * u + b) * u + c) * u + d
             f_prime = (3 * a * u + 2 * b) * u + c
-            if abs(f_prime) < 1e-15:  # 防止除零
+            if abs(f_prime) < 1e-15:  # Prevent division by zero
                 break
             u_new = u - f / f_prime
             if abs(u_new - u) < 1e-12:
@@ -113,17 +113,17 @@ class _RationalBezierInterpolator:
                 break
             u = u_new
         
-        # 计算伯恩斯坦多项式
+        # Compute the Bernstein polynomials
         u1 = 1.0 - u
         B0 = u1 * u1 * u1
         B1 = 3.0 * u * u1 * u1
         B2 = 3.0 * u * u * u1
         B3 = u * u * u
         
-        # 计算加权分母和分子
+        # Compute the weighted denominator and numerator
         denom = B0*w0 + B1*w1 + B2*w2 + B3*w3
         
-        if abs(denom) < 1e-15:  # 防止除零
+        if abs(denom) < 1e-15:  # Prevent division by zero
             return y0
         
         y = (B0*w0*y0 + B1*w1*y1_ctl + B2*w2*y2_ctl + B3*w3*y1) / denom
@@ -135,28 +135,28 @@ def RationalBezierInterpolation(x0: float, x1: float,
                        k0: float, k1: float, 
                        w0: float = 1.0, w1: float = 1.0, w2: float = 1.0, w3: float = 1.0):
     """
-    有理贝塞尔插值器工厂函数
-    
-    创建并返回一个可调用的插值器对象。
-    内部使用 Numba JIT 编译的类来实现高性能计算。
-    
-    参数:
-        x0, x1: 起始和结束的时间值
-        y0, y1: 起始和结束的数值
-        k0, k1: 起始和结束的斜率
-        w0, w1, w2, w3: 权重参数（默认为 1.0）
-    
-    返回:
-        一个可调用对象，接受 t 参数并返回插值后的 y 值
-    
-    示例:
+    Factory function for the rational Bezier interpolator.
+
+    Creates and returns a callable interpolator object.
+    Internally uses a Numba JIT compiled class for high-performance computation.
+
+    Args:
+        x0, x1: Start and end time values.
+        y0, y1: Start and end values.
+        k0, k1: Start and end slopes.
+        w0, w1, w2, w3: Weight parameters (default to 1.0).
+
+    Returns:
+        A callable object that takes t and returns the interpolated y value.
+
+    Example:
         >>> interp = RationalBezierInterpolation(0, 1, 0, 1, 0, 0)
-        >>> y = interp(0.5)  # 计算 t=0.5 时的值
+        >>> y = interp(0.5)  # Compute the value at t=0.5
     """
-    # 创建 JIT 编译的插值器实例
+    # Create a JIT compiled interpolator instance
     interpolator = _RationalBezierInterpolator(x0, x1, y0, y1, k0, k1, w0, w1, w2, w3)
     
-    # 返回一个包装函数，使其可以像普通函数一样被调用
+    # Return a wrapper function so it can be called like a regular function
     def spline(t):
         return interpolator.evaluate(t)
     

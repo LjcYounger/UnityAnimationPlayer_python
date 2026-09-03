@@ -13,41 +13,41 @@ else:
 @njit(cache=True)
 def binary_search_segment_index(time_nodes: np.array, t: float) -> int:
     """
-    使用 np.searchsorted 找到时间点 t 应该使用的曲线段索引
-    
-    参数:
-        time_nodes: 时间节点数组，形状为 (n,)，已排序的时间点
-        t: 当前查询的时间点
-    
-    返回:
-        应该使用的曲线段索引（0 到 len(time_nodes)-2）
-        如果 t 小于第一个时间点，返回 0
-        如果 t 大于最后一个时间点，返回 len(time_nodes)-2
-    
-    说明:
-        - time_nodes 有 n 个时间点，对应 n-1 个曲线段
-        - 第 i 个曲线段覆盖 [time_nodes[i], time_nodes[i+1]] 区间
-        - 返回值 i 表示应该使用第 i 个曲线段进行插值
-    
-    示例:
+    Use np.searchsorted to find the curve segment index for time point t.
+
+    Args:
+        time_nodes: Array of time nodes, shape (n,), sorted time points.
+        t: The current time point to query.
+
+    Returns:
+        The curve segment index to use (0 to len(time_nodes)-2).
+        Returns 0 if t is less than the first time point.
+        Returns len(time_nodes)-2 if t is greater than the last time point.
+
+    Notes:
+        - time_nodes has n time points, corresponding to n-1 curve segments.
+        - The i-th curve segment covers the interval [time_nodes[i], time_nodes[i+1]].
+        - The returned index i indicates that the i-th curve segment should be used for interpolation.
+
+    Example:
         >>> time_nodes = np.array([0.0, 0.5, 1.0, 1.5])
-        >>> binary_search_segment_index(time_nodes, 0.3)  # 返回 0
-        >>> binary_search_segment_index(time_nodes, 0.7)  # 返回 1
-        >>> binary_search_segment_index(time_nodes, 1.2)  # 返回 2
+        >>> binary_search_segment_index(time_nodes, 0.3)  # returns 0
+        >>> binary_search_segment_index(time_nodes, 0.7)  # returns 1
+        >>> binary_search_segment_index(time_nodes, 1.2)  # returns 2
     """
     n = len(time_nodes)
     
-    # 边界情况检查
+    # Check for edge cases
     if n < 2:
         return 0
     
-    # 使用 np.searchsorted 找到插入位置
-    # searchsorted 返回的是使得数组保持有序的插入位置
-    # side='right' 确保当 t 等于某个时间点时，返回该时间点的下一个位置
+    # Use np.searchsorted to find the insertion position
+    # searchsorted returns the insertion position that keeps the array sorted
+    # side='right' ensures that when t equals a time point, the next position is returned
     idx = np.searchsorted(time_nodes, t, side='right') - 1
     
-    # 确保索引在有效范围内 [0, n-2]
-    # idx 的范围是 [-1, n-1]，需要调整到 [0, n-2]
+    # Ensure the index is within the valid range [0, n-2]
+    # idx ranges over [-1, n-1] and needs to be clamped to [0, n-2]
     if idx < 0:
         return 0
     elif idx >= n - 1:

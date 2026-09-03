@@ -15,7 +15,7 @@ class AnimationEvents:
 
     def get_events(self, t: float, time_reverse=False) -> List[list]:
         triggered_events = []
-        # 根据时间方向决定触发条件
+        # Determine the trigger condition based on the time direction
         condition = lambda event_time: event_time >= t if time_reverse else event_time <= t
         
         while self.events and condition(self.events[0][0]):

@@ -14,7 +14,7 @@ class PlayKwargsDict(TypedDict, total=False):
     scale_ratio: Union[float, Tuple[float, ...]]
 
 class PlayKwargs:
-    # 默认值定义
+    # Default value definitions
     default_path = 'general'
     default_time_reverse = False
     default_event_time_reverse = False

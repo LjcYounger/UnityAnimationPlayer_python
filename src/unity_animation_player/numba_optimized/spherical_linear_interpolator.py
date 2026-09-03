@@ -25,11 +25,11 @@ else:
     float64 = float
 
 
-# ==================== 工具函数 ====================
+# ==================== Utility Functions ====================
 
 @njit
 def _clamp(value: float, min_val: float, max_val: float) -> float:
-    """限制值在指定范围内"""
+    """Clamp a value to the specified range."""
     if value < min_val:
         return min_val
     elif value > max_val:
@@ -40,20 +40,20 @@ def _clamp(value: float, min_val: float, max_val: float) -> float:
 @njit
 def _axis_angle_to_quaternion(axis_x: float, axis_y: float, axis_z: float, angle_deg: float) -> tuple:
     """
-    轴角（度）转四元数
-    
-    参数:
-        axis_x, axis_y, axis_z: 旋转轴向量
-        angle_deg: 旋转角度（度）
-    
-    返回:
-        (x, y, z, w) 四元数分量
+    Convert an axis-angle (degrees) to a quaternion.
+
+    Args:
+        axis_x, axis_y, axis_z: The rotation axis vector.
+        angle_deg: The rotation angle in degrees.
+
+    Returns:
+        The quaternion components (x, y, z, w).
     """
     half = np.radians(angle_deg) * 0.5
     s = np.sin(half)
     c = np.cos(half)
     
-    # 归一化轴向量
+    # Normalize the axis vector
     length = np.sqrt(axis_x*axis_x + axis_y*axis_y + axis_z*axis_z)
     if length > 1e-15:
         axis_x /= length
@@ -71,12 +71,12 @@ def _axis_angle_to_quaternion(axis_x: float, axis_y: float, axis_z: float, angle
 @njit
 def _quaternion_to_axis_angle(x: float, y: float, z: float, w: float) -> tuple:
     """
-    四元数转轴角（度）
-    
-    返回:
+    Convert a quaternion to an axis-angle (degrees).
+
+    Returns:
         (axis_x, axis_y, axis_z, angle_deg)
     """
-    # 归一化
+    # Normalize
     length = np.sqrt(x*x + y*y + z*z + w*w)
     if length > 1e-15:
         x /= length
@@ -84,7 +84,7 @@ def _quaternion_to_axis_angle(x: float, y: float, z: float, w: float) -> tuple:
         z /= length
         w /= length
     
-    # 限制 w 范围
+    # Clamp w to a valid range
     if w > 1.0:
         w = 1.0
     elif w < -1.0:
@@ -96,7 +96,7 @@ def _quaternion_to_axis_angle(x: float, y: float, z: float, w: float) -> tuple:
     sin_half = np.sin(angle_rad / 2.0)
     
     if abs(sin_half) < 1e-10:
-        # 零旋转，返回默认轴
+        # Zero rotation, return the default axis
         return (1.0, 0.0, 0.0, 0.0)
     
     axis_x = x / sin_half
@@ -109,19 +109,19 @@ def _quaternion_to_axis_angle(x: float, y: float, z: float, w: float) -> tuple:
 @njit
 def _euler_to_quaternion(euler_x: float, euler_y: float, euler_z: float) -> tuple:
     """
-    将欧拉角（度）转换为四元数
-    
-    旋转顺序：Z -> X -> Y (Unity 默认顺序)
-    
-    参数:
-        euler_x: X轴旋转角度（度）
-        euler_y: Y轴旋转角度（度）
-        euler_z: Z轴旋转角度（度）
-    
-    返回:
-        (x, y, z, w) 四元数分量
+    Convert Euler angles (degrees) to a quaternion.
+
+    Rotation order: Z -> X -> Y (Unity default order).
+
+    Args:
+        euler_x: X-axis rotation angle in degrees.
+        euler_y: Y-axis rotation angle in degrees.
+        euler_z: Z-axis rotation angle in degrees.
+
+    Returns:
+        The quaternion components (x, y, z, w).
     """
-    # 将角度转换为弧度并除以2
+    # Convert the angles to radians and divide by 2
     cx = np.cos(np.radians(euler_x) * 0.5)
     sx = np.sin(np.radians(euler_x) * 0.5)
     cy = np.cos(np.radians(euler_y) * 0.5)
@@ -129,7 +129,7 @@ def _euler_to_quaternion(euler_x: float, euler_y: float, euler_z: float) -> tupl
     cz = np.cos(np.radians(euler_z) * 0.5)
     sz = np.sin(np.radians(euler_z) * 0.5)
     
-    # Unity 旋转顺序 ZXY 的四元数计算公式
+    # Quaternion formula for Unity's ZXY rotation order
     x = sx * cy * cz + cx * sy * sz
     y = cx * sy * cz - sx * cy * sz
     z = cx * cy * sz - sx * sy * cz
@@ -141,17 +141,17 @@ def _euler_to_quaternion(euler_x: float, euler_y: float, euler_z: float) -> tupl
 @njit
 def _quaternion_to_euler(x: float, y: float, z: float, w: float) -> tuple:
     """
-    将四元数转换为欧拉角（度）
-    
-    返回顺序：X, Y, Z (Unity 默认顺序)
-    
-    参数:
-        x, y, z, w: 四元数的四个分量
-    
-    返回:
-        (euler_x, euler_y, euler_z) 欧拉角（度）
+    Convert a quaternion to Euler angles (degrees).
+
+    Return order: X, Y, Z (Unity default order).
+
+    Args:
+        x, y, z, w: The four quaternion components.
+
+    Returns:
+        The Euler angles (euler_x, euler_y, euler_z) in degrees.
     """
-    # 归一化四元数
+    # Normalize the quaternion
     length = np.sqrt(x*x + y*y + z*z + w*w)
     if length > 1e-15:
         x /= length
@@ -159,19 +159,19 @@ def _quaternion_to_euler(x: float, y: float, z: float, w: float) -> tuple:
         z /= length
         w /= length
     
-    # 计算 roll (x-axis rotation)
+    # Compute roll (x-axis rotation)
     sinr_cosp = 2.0 * (w * x + y * z)
     cosr_cosp = 1.0 - 2.0 * (x * x + y * y)
     euler_x = np.degrees(np.arctan2(sinr_cosp, cosr_cosp))
     
-    # 计算 pitch (y-axis rotation)
+    # Compute pitch (y-axis rotation)
     sinp = 2.0 * (w * y - z * x)
     if abs(sinp) >= 1.0:
         euler_y = np.degrees(np.copysign(np.pi / 2.0, sinp))
     else:
         euler_y = np.degrees(np.arcsin(sinp))
     
-    # 计算 yaw (z-axis rotation)
+    # Compute yaw (z-axis rotation)
     siny_cosp = 2.0 * (w * z + x * y)
     cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
     euler_z = np.degrees(np.arctan2(siny_cosp, cosy_cosp))
@@ -181,7 +181,7 @@ def _quaternion_to_euler(x: float, y: float, z: float, w: float) -> tuple:
 
 @njit
 def _normalize_angle(angle: float) -> float:
-    """将角度规范化到 [-180, 180] 范围"""
+    """Normalize an angle to the range [-180, 180]."""
     return np.mod(angle + 180.0, 360.0) - 180.0
 
 
@@ -189,27 +189,27 @@ def _normalize_angle(angle: float) -> float:
 def _detect_full_rotation(x0: float, y0: float, z0: float, w0: float,
                           x1: float, y1: float, z1: float, w1: float) -> bool:
     """
-    检测两个四元数是否代表一个完整旋转（360°的整数倍）
-    
-    当两个四元数表示相同朝向但符号相反，且起始四元数接近恒等变换时，
-    判定为完整旋转。
+    Detect whether two quaternions represent a full rotation (an integer multiple of 360 degrees).
+
+    A full rotation is detected when the two quaternions describe the same orientation
+    but have opposite signs, and the start quaternion is close to the identity transform.
     """
-    # 计算点积
+    # Compute the dot product
     dot = x0*x1 + y0*y1 + z0*z1 + w0*w1
     
-    # 如果点积接近 -1，说明两个四元数方向相反
+    # If the dot product is close to -1, the two quaternions point in opposite directions
     if dot < -0.999:
-        # 检查起始四元数是否接近恒等变换 (0,0,0,1) 或 (0,0,0,-1)
+        # Check whether the start quaternion is near the identity transform (0,0,0,1) or (0,0,0,-1)
         vec_len = x0*x0 + y0*y0 + z0*z0
-        if vec_len < 0.001 * 0.001:  # 向量部分接近0
+        if vec_len < 0.001 * 0.001:  # The vector part is close to zero
             return True
     
     return False
 
 
-# ==================== 四元数 SLERP 插值器 ====================
+# ==================== Quaternion SLERP Interpolator ====================
 
-# 定义 SLERP 类的字段类型规范
+# Define the field type spec of the SLERP class
 spec_quaternion_slerp = [
     ('x0', float64),
     ('y0', float64),
@@ -223,7 +223,7 @@ spec_quaternion_slerp = [
     ('t1', float64),
 ]
 
-# 定义轴角插值器的字段类型规范
+# Define the field type spec of the axis-angle interpolator
 spec_axis_angle = [
     ('axis_x', float64),
     ('axis_y', float64),
@@ -238,16 +238,16 @@ spec_axis_angle = [
 @jitclass(spec_quaternion_slerp)
 class _SphericalLinearInterpolator:
     """
-    球面线性插值器核心（Numba JIT 编译版本）
-    
-    用于在两个四元数之间进行球面线性插值（SLERP）。
-    这是一个内部类，外部使用 SphericalLinearInterpolation 工厂函数
+    Core spherical linear interpolator (Numba JIT compiled version).
+
+    Performs spherical linear interpolation (SLERP) between two quaternions.
+    This is an internal class; use the SphericalLinearInterpolation factory function externally.
     """
     
     def __init__(self, x0: float, y0: float, z0: float, w0: float,
                  x1: float, y1: float, z1: float, w1: float,
                  t0: float = 0.0, t1: float = 1.0):
-        # 保存起始和结束四元数
+        # Store the start and end quaternions
         self.x0 = x0
         self.y0 = y0
         self.z0 = z0
@@ -256,21 +256,22 @@ class _SphericalLinearInterpolator:
         self.y1 = y1
         self.z1 = z1
         self.w1 = w1
-        # 保存时间范围，支持自动归一化
+        # Store the time range to support automatic normalization
         self.t0 = t0
         self.t1 = t1
     
     def evaluate(self, t: float) -> tuple:
         """
-        计算给定 t 值对应的插值四元数
-        
-        参数:
-            t: 可以是归一化参数 [0, 1] 或实际时间值（如果设置了 t0, t1）
-        
-        返回:
-            (x, y, z, w) 四元数分量
+        Compute the interpolated quaternion for the given t.
+
+        Args:
+            t: Either a normalized parameter in [0, 1] or an actual time value
+               (if t0, t1 are set).
+
+        Returns:
+            The quaternion components (x, y, z, w).
         """
-        # 如果设置了时间范围，自动归一化
+        # If a time range is set, normalize automatically
         if self.t1 != self.t0:
             t_normalized = (t - self.t0) / (self.t1 - self.t0)
             t_normalized = _clamp(t_normalized, 0.0, 1.0)
@@ -281,9 +282,9 @@ class _SphericalLinearInterpolator:
     
     def _slerp_core(self, t: float) -> tuple:
         """
-        SLERP 核心计算
-        
-        球面线性插值公式：
+        Core SLERP computation.
+
+        Spherical linear interpolation formula:
         q(t) = q0 * sin((1-t)*θ) / sin(θ) + q1 * sin(t*θ) / sin(θ)
         """
         x0 = self.x0
@@ -295,10 +296,10 @@ class _SphericalLinearInterpolator:
         z1 = self.z1
         w1 = self.w1
         
-        # 计算点积（夹角的余弦值）
+        # Compute the dot product (cosine of the angle between the quaternions)
         dot = x0*x1 + y0*y1 + z0*z1 + w0*w1
         
-        # 如果点积为负，翻转其中一个四元数以选择最短路径
+        # If the dot product is negative, flip one quaternion to take the shortest path
         if dot < 0.0:
             x1 = -x1
             y1 = -y1
@@ -306,25 +307,25 @@ class _SphericalLinearInterpolator:
             w1 = -w1
             dot = -dot
         
-        # 限制点积范围，防止数值误差导致的问题
+        # Clamp the dot product to prevent issues caused by numerical errors
         if dot > 1.0:
             dot = 1.0
         elif dot < -1.0:
             dot = -1.0
         
-        # 计算夹角
+        # Compute the angle between the quaternions
         theta_0 = np.arccos(dot)
         sin_theta_0 = np.sin(theta_0)
         
-        # 如果夹角非常小，使用线性插值避免除以零
+        # If the angle is very small, use linear interpolation to avoid division by zero
         if abs(sin_theta_0) < 1e-6:
-            # 线性插值
+            # Linear interpolation
             x = x0 + t * (x1 - x0)
             y = y0 + t * (y1 - y0)
             z = z0 + t * (z1 - z0)
             w = w0 + t * (w1 - w0)
             
-            # 归一化
+            # Normalize
             length = np.sqrt(x*x + y*y + z*z + w*w)
             if length > 1e-15:
                 x /= length
@@ -334,14 +335,14 @@ class _SphericalLinearInterpolator:
             
             return (x, y, z, w)
         
-        # 计算插值系数
+        # Compute the interpolation coefficients
         sin_theta_t = np.sin(t * theta_0)
         sin_theta_1_t = np.sin((1.0 - t) * theta_0)
         
         s0 = sin_theta_1_t / sin_theta_0
         s1 = sin_theta_t / sin_theta_0
         
-        # 计算插值后的四元数
+        # Compute the interpolated quaternion
         x = s0 * x0 + s1 * x1
         y = s0 * y0 + s1 * y1
         z = s0 * z0 + s1 * z1
@@ -353,47 +354,48 @@ class _SphericalLinearInterpolator:
 @jitclass(spec_axis_angle)
 class _AxisAngleInterpolator:
     """
-    轴角插值器（Numba JIT 编译版本）
-    
-    用于绕固定轴进行角度插值，解决 SLERP 无法处理 360° 完整旋转的问题。
-    所有字段必须在 spec 中预先定义。
+    Axis-angle interpolator (Numba JIT compiled version).
+
+    Interpolates the angle around a fixed axis, solving the problem where SLERP
+    cannot handle a full 360-degree rotation. All fields must be predefined in the spec.
     """
     
     def __init__(self, axis_x: float, axis_y: float, axis_z: float, 
                  angle_start: float, angle_total: float,
                  t0: float = 0.0, t1: float = 1.0):
-        # 保存轴向量
+        # Store the axis vector
         self.axis_x = axis_x
         self.axis_y = axis_y
         self.axis_z = axis_z
-        # 保存角度信息
+        # Store the angle information
         self.angle_start = angle_start
         self.angle_total = angle_total
-        # 保存时间范围
+        # Store the time range
         self.t0 = t0
         self.t1 = t1
     
     def evaluate(self, t: float) -> tuple:
         """
-        计算给定 t 值对应的插值四元数
-        
-        参数:
-            t: 可以是归一化参数 [0, 1] 或实际时间值（如果设置了 t0, t1）
-        
-        返回:
-            (x, y, z, w) 四元数分量
+        Compute the interpolated quaternion for the given t.
+
+        Args:
+            t: Either a normalized parameter in [0, 1] or an actual time value
+               (if t0, t1 are set).
+
+        Returns:
+            The quaternion components (x, y, z, w).
         """
-        # 如果设置了时间范围，自动归一化
+        # If a time range is set, normalize automatically
         if self.t1 != self.t0:
             t_normalized = (t - self.t0) / (self.t1 - self.t0)
             t_normalized = _clamp(t_normalized, 0.0, 1.0)
         else:
             t_normalized = t
         
-        # 计算当前角度
+        # Compute the current angle
         current_angle = self.angle_start + self.angle_total * t_normalized
         
-        # 生成对应的四元数
+        # Build the corresponding quaternion
         return _axis_angle_to_quaternion(self.axis_x, self.axis_y, self.axis_z, current_angle)
 
 
@@ -402,45 +404,46 @@ def SphericalLinearInterpolation(x0: float, y0: float, z0: float, w0: float,
                                  t0: float = 0.0, t1: float = 1.0, 
                                  force_axis_angle: bool = False):
     """
-    球面线性插值器工厂函数
-    
-    创建并返回一个可调用的插值器对象，用于在两个四元数之间进行插值。
-    默认使用 SLERP，当检测到完整旋转（360°）时会自动切换到轴角插值。
-    
-    参数:
-        x0, y0, z0, w0: 起始四元数的四个分量
-        x1, y1, z1, w1: 结束四元数的四个分量
-        t0, t1: 时间范围（可选），如果提供则自动进行时间归一化
-        force_axis_angle: 强制使用轴角插值模式
-    
-    返回:
-        一个可调用对象，接受 t 参数并返回插值后的四元数 (x, y, z, w)
-        - 如果提供了 t0, t1：t 可以是实际时间值，会自动归一化
-        - 如果未提供 t0, t1：t 应该是归一化参数 [0, 1]
-    
-    示例:
-        >>> # 普通 SLERP 插值
+    Factory function for the spherical linear interpolator.
+
+    Creates and returns a callable interpolator object used to interpolate between two quaternions.
+    Uses SLERP by default, and automatically switches to axis-angle interpolation
+    when a full rotation (360 degrees) is detected.
+
+    Args:
+        x0, y0, z0, w0: The four components of the start quaternion.
+        x1, y1, z1, w1: The four components of the end quaternion.
+        t0, t1: Optional time range. If provided, time is normalized automatically.
+        force_axis_angle: Force axis-angle interpolation mode.
+
+    Returns:
+        A callable object that takes t and returns the interpolated quaternion (x, y, z, w).
+        - If t0, t1 are provided: t can be an actual time value and is normalized automatically.
+        - If t0, t1 are not provided: t should be a normalized parameter in [0, 1].
+
+    Example:
+        >>> # Regular SLERP interpolation
         >>> slerp = SphericalLinearInterpolation(0, 0, 0, 1, 0, 0, 0.7071, 0.7071)
         >>> x, y, z, w = slerp(0.5)
         
-        >>> # 360° 完整旋转（自动切换轴角模式）
+        >>> # Full 360-degree rotation (automatically switches to axis-angle mode)
         >>> slerp = SphericalLinearInterpolation(0, 0, 0, 1, 0, 0, 0, -1)
-        >>> x, y, z, w = slerp(0.5)  # 绕 Z 轴旋转 180°
+        >>> x, y, z, w = slerp(0.5)  # Rotates 180 degrees around the Z axis
     """
-    # 检测是否需要使用轴角插值
+    # Detect whether axis-angle interpolation is needed
     use_axis_angle = force_axis_angle or _detect_full_rotation(x0, y0, z0, w0, x1, y1, z1, w1)
     
     if use_axis_angle:
-        # 提取轴角信息
+        # Extract the axis-angle representation
         if abs(x0) < 0.001 and abs(y0) < 0.001 and abs(z0) < 0.001:
-            # 起始四元数接近恒等变换，从结束四元数提取轴
+            # The start quaternion is near the identity transform; extract the axis from the end quaternion
             axis_x, axis_y, axis_z, angle_total = _quaternion_to_axis_angle(x1, y1, z1, w1)
-            # 如果角度接近360，保留完整旋转
+            # If the angle is close to 360 degrees, keep the full rotation
             if abs(angle_total) < 0.1:
                 angle_total = 360.0
             interpolator = _AxisAngleInterpolator(axis_x, axis_y, axis_z, 0.0, angle_total, t0, t1)
         else:
-            # 一般情况，提取轴角
+            # General case: extract the axis-angle representation
             axis_x, axis_y, axis_z, angle_0 = _quaternion_to_axis_angle(x0, y0, z0, w0)
             _, _, _, angle_1 = _quaternion_to_axis_angle(x1, y1, z1, w1)
             angle_diff = angle_1 - angle_0
@@ -448,31 +451,32 @@ def SphericalLinearInterpolation(x0: float, y0: float, z0: float, w0: float,
                 angle_diff = 360.0
             interpolator = _AxisAngleInterpolator(axis_x, axis_y, axis_z, angle_0, angle_diff, t0, t1)
     else:
-        # 使用 SLERP 插值器
+        # Use the SLERP interpolator
         interpolator = _SphericalLinearInterpolator(x0, y0, z0, w0, x1, y1, z1, w1, t0, t1)
     
-    # 返回一个包装函数
+    # Return a wrapper function
     def slerp(t):
         return interpolator.evaluate(t)
     
     return slerp
 
 
-# ==================== 欧拉角工具类和 SLERP 插值器 ====================
+# ==================== Euler Angle Utilities and SLERP Interpolator ====================
 
 class _EulerSphericalLinearInterpolator:
     """
-    欧拉角球面线性插值器
-    
-    提供欧拉角与四元数互转功能，以及在两个欧拉角之间进行 SLERP 的功能。
-    支持轴角插值模式，用于处理 360° 等完整旋转。
+    Euler angle spherical linear interpolator.
+
+    Provides conversion between Euler angles and quaternions, as well as SLERP
+    between two sets of Euler angles. Supports an axis-angle interpolation mode
+    to handle full rotations such as 360 degrees.
     """
 
     def __init__(self, euler_x0: float, euler_y0: float, euler_z0: float,
                  euler_x1: float, euler_y1: float, euler_z1: float,
                  t0: float = 0.0, t1: float = 1.0, axis=None):
         
-        # 保存起始和结束欧拉角
+        # Store the start and end Euler angles
         self.euler_x0 = euler_x0
         self.euler_y0 = euler_y0
         self.euler_z0 = euler_z0
@@ -482,7 +486,7 @@ class _EulerSphericalLinearInterpolator:
         self.t0 = t0
         self.t1 = t1
         
-        # 解析轴方向
+        # Resolve the axis direction
         self._axis_vec = None
         self._use_axis_angle = False
         
@@ -494,31 +498,31 @@ class _EulerSphericalLinearInterpolator:
                 self._axis_vec = tuple(float(v) for v in axis)
             self._use_axis_angle = True
         else:
-            # 自动检测是否需要轴角插值
+            # Automatically detect whether axis-angle interpolation is needed
             self._use_axis_angle = self._detect_axis_angle_needed()
         
         if self._use_axis_angle:
-            # 启用轴角插值模式
+            # Enable axis-angle interpolation mode
             if self._axis_vec is None:
-                self._axis_vec = (0.0, 0.0, 1.0)  # 默认 Z 轴
+                self._axis_vec = (0.0, 0.0, 1.0)  # Default to the Z axis
             self._start_angle, self._total_angle = self._extract_axis_rotation()
         else:
-            # 使用四元数 SLERP 模式
-            # 处理角度差异，确保沿最短路径旋转
+            # Use the quaternion SLERP mode
+            # Adjust the angle differences to ensure rotation along the shortest path
             adjusted_x1, adjusted_y1, adjusted_z1 = self._adjust_angles_for_shortest_path(
                 euler_x0, euler_y0, euler_z0, euler_x1, euler_y1, euler_z1
             )
             
-            # 将欧拉角转换为四元数并创建插值器
+            # Convert the Euler angles to quaternions and create the interpolator
             quat_start = _euler_to_quaternion(euler_x0, euler_y0, euler_z0)
             quat_end = _euler_to_quaternion(adjusted_x1, adjusted_y1, adjusted_z1)
             
-            # 检测四元数是否为完整旋转
+            # Detect whether the quaternions represent a full rotation
             if _detect_full_rotation(*quat_start, *quat_end):
-                # 切换到轴角插值
+                # Switch to axis-angle interpolation
                 self._use_axis_angle = True
                 if self._axis_vec is None:
-                    self._axis_vec = (0.0, 0.0, 1.0)  # 默认 Z 轴
+                    self._axis_vec = (0.0, 0.0, 1.0)  # Default to the Z axis
                 self._start_angle, self._total_angle = self._extract_axis_rotation()
             else:
                 self._spherical_linear_interpolator = SphericalLinearInterpolation(
@@ -526,7 +530,7 @@ class _EulerSphericalLinearInterpolator:
                 )
 
     def _detect_axis_angle_needed(self) -> bool:
-        """自动检测是否需要轴角插值"""
+        """Automatically detect whether axis-angle interpolation is needed."""
         diffs = [
             abs(self.euler_x1 - self.euler_x0),
             abs(self.euler_y1 - self.euler_y0),
@@ -536,7 +540,7 @@ class _EulerSphericalLinearInterpolator:
         axes = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
         
         for i, diff in enumerate(diffs):
-            # 如果变化量大于 180° 且模 360° 接近 0
+            # If the change exceeds 180 degrees and mod 360 is close to 0
             if diff > 180.0 and abs(np.mod(diff, 360.0)) < 1.0:
                 self._axis_vec = axes[i]
                 return True
@@ -544,13 +548,13 @@ class _EulerSphericalLinearInterpolator:
         return False
 
     def _extract_axis_rotation(self) -> tuple:
-        """提取绕指定轴的起始角度和总旋转角度"""
-        # 找到轴对应的索引
-        if self._axis_vec[0] > 0.9:  # X轴
+        """Extract the start angle and the total rotation angle around the specified axis."""
+        # Find the index corresponding to the axis
+        if self._axis_vec[0] > 0.9:  # X axis
             idx = 0
-        elif self._axis_vec[1] > 0.9:  # Y轴
+        elif self._axis_vec[1] > 0.9:  # Y axis
             idx = 1
-        else:  # Z轴
+        else:  # Z axis
             idx = 2
         
         start_angles = [self.euler_x0, self.euler_y0, self.euler_z0]
@@ -559,7 +563,7 @@ class _EulerSphericalLinearInterpolator:
         start_angle = start_angles[idx]
         total_angle = end_angles[idx] - start_angle
         
-        # 确保总角度不为0（针对完整旋转）
+        # Ensure the total angle is not 0 (relevant for full rotations)
         if abs(total_angle) < 0.01:
             total_angle = 360.0 if end_angles[idx] >= start_angles[idx] else -360.0
         
@@ -567,64 +571,65 @@ class _EulerSphericalLinearInterpolator:
 
     def _adjust_angles_for_shortest_path(self, x0, y0, z0, x1, y1, z1):
         """
-        调整目标角度以确保沿正确的路径旋转
+        Adjust the target angles to ensure rotation along the correct path.
         """
-        # 计算每个轴的角度差并规范化到 [-180, 180]
+        # Compute the per-axis angle differences and normalize them to [-180, 180]
         dx = _normalize_angle(x1 - x0)
         dy = _normalize_angle(y1 - y0)
         dz = _normalize_angle(z1 - z0)
         
-        # 调整目标角度
+        # Adjust the target angles
         return x0 + dx, y0 + dy, z0 + dz
 
     def evaluate(self, t: float) -> tuple:
         """
-        计算给定 t 值对应的插值欧拉角
-        
-        参数:
-            t: 可以是归一化参数 [0, 1] 或实际时间值（如果设置了 t0, t1）
-        
-        返回:
-            (euler_x, euler_y, euler_z) 欧拉角（度）
+        Compute the interpolated Euler angles for the given t.
+
+        Args:
+            t: Either a normalized parameter in [0, 1] or an actual time value
+               (if t0, t1 are set).
+
+        Returns:
+            The Euler angles (euler_x, euler_y, euler_z) in degrees.
         """
-        # 时间归一化
+        # Time normalization
         if self.t1 != self.t0:
             t = (t - self.t0) / (self.t1 - self.t0)
             t = max(0.0, min(1.0, t))
         
         if self._use_axis_angle:
-            # 轴角插值模式
+            # Axis-angle interpolation mode
             current_angle = self._start_angle + self._total_angle * t
             
-            # 根据旋转轴组合欧拉角
-            if self._axis_vec[0] > 0.9:  # 绕 X 轴
+            # Combine the Euler angles based on the rotation axis
+            if self._axis_vec[0] > 0.9:  # Around the X axis
                 quat = _euler_to_quaternion(current_angle, self.euler_y0, self.euler_z0)
-            elif self._axis_vec[1] > 0.9:  # 绕 Y 轴
+            elif self._axis_vec[1] > 0.9:  # Around the Y axis
                 quat = _euler_to_quaternion(self.euler_x0, current_angle, self.euler_z0)
-            else:  # 绕 Z 轴
+            else:  # Around the Z axis
                 quat = _euler_to_quaternion(self.euler_x0, self.euler_y0, current_angle)
             
             return _quaternion_to_euler(*quat)
         else:
-            # SLERP 模式
+            # SLERP mode
             quat = self._spherical_linear_interpolator(t)
             return _quaternion_to_euler(*quat)
 
     @staticmethod
     def euler_to_quaternion(euler_x: float, euler_y: float, euler_z: float) -> tuple:
         """
-        将欧拉角（度）转换为四元数
-        
-        旋转顺序：Z -> X -> Y (Unity 默认顺序)
+        Convert Euler angles (degrees) to a quaternion.
+
+        Rotation order: Z -> X -> Y (Unity default order).
         """
         return _euler_to_quaternion(euler_x, euler_y, euler_z)
     
     @staticmethod
     def quaternion_to_euler(x: float, y: float, z: float, w: float) -> tuple:
         """
-        将四元数转换为欧拉角（度）
-        
-        返回顺序：X, Y, Z (Unity 默认顺序)
+        Convert a quaternion to Euler angles (degrees).
+
+        Return order: X, Y, Z (Unity default order).
         """
         return _quaternion_to_euler(x, y, z, w)
 
@@ -633,34 +638,35 @@ def EulerSphericalLinearInterpolation(euler_x0: float, euler_y0: float, euler_z0
                                       euler_x1: float, euler_y1: float, euler_z1: float,
                                       t0: float = 0.0, t1: float = 1.0, axis=None):
     """
-    欧拉角球面线性插值器工厂函数
-    
-    在两个欧拉角之间进行球面线性插值。支持两种模式：
-    1. SLERP 模式（默认）：通过四元数球面线性插值，适合一般旋转
-    2. 轴角模式：绕固定轴匀速旋转，用于解决 360° 整圈旋转问题
-    
-    参数:
-        euler_x0, euler_y0, euler_z0: 起始欧拉角（度）
-        euler_x1, euler_y1, euler_z1: 结束欧拉角（度）
-        t0, t1: 时间范围（可选），如果提供则自动进行时间归一化
-        axis: 可选，指定绕哪个轴旋转。可以是 'x'/'y'/'z' 或三元组 (x, y, z)
-              如果为 None，会自动检测是否需要轴角模式（某轴变化量 ≥ 360° 时）
-    
-    返回:
-        一个可调用对象，接受 t 参数并返回插值后的欧拉角 (x, y, z)（度）
-    
-    示例:
-        >>> # SLERP 模式（默认）
+    Factory function for the Euler angle spherical linear interpolator.
+
+    Performs spherical linear interpolation between two sets of Euler angles. Supports two modes:
+    1. SLERP mode (default): interpolates through quaternions, suitable for general rotations.
+    2. Axis-angle mode: rotates uniformly around a fixed axis, used to solve full 360-degree rotations.
+
+    Args:
+        euler_x0, euler_y0, euler_z0: The start Euler angles (degrees).
+        euler_x1, euler_y1, euler_z1: The end Euler angles (degrees).
+        t0, t1: Optional time range. If provided, time is normalized automatically.
+        axis: Optional. Specifies the axis of rotation. Can be 'x'/'y'/'z' or a tuple (x, y, z).
+              If None, automatically detects whether axis-angle mode is needed
+              (when the change on some axis is >= 360 degrees).
+
+    Returns:
+        A callable object that takes t and returns the interpolated Euler angles (x, y, z) in degrees.
+
+    Example:
+        >>> # SLERP mode (default)
         >>> slerp = EulerSphericalLinearInterpolation(0, 0, 0, 90, 45, 0)
         >>> x, y, z = slerp(0.5)
         
-        >>> # 轴角模式（手动指定绕 Z 轴旋转 360°）
+        >>> # Axis-angle mode (manually rotate 360 degrees around the Z axis)
         >>> slerp = EulerSphericalLinearInterpolation(0, 0, 0, 0, 0, 360, axis='z')
-        >>> x, y, z = slerp(0.5)  # 结果约为 (0, 0, 180)
+        >>> x, y, z = slerp(0.5)  # Result is approximately (0, 0, 180)
         
-        >>> # 自动检测模式（自动启用轴角插值）
+        >>> # Auto-detection mode (axis-angle interpolation enabled automatically)
         >>> slerp = EulerSphericalLinearInterpolation(0, 0, 0, 0, 0, 360)
-        >>> x, y, z = slerp(1.0)  # 完整旋转一圈
+        >>> x, y, z = slerp(1.0)  # Full rotation
     """
     interpolator = _EulerSphericalLinearInterpolator(
         euler_x0, euler_y0, euler_z0,
