@@ -2,6 +2,7 @@ from ..numba_optimized.rational_bezier_interpolator import RationalBezierInterpo
 from ..numba_optimized.spherical_linear_interpolator import SphericalLinearInterpolation, EulerSphericalLinearInterpolation
 import numpy as np
 
+from ..constants import GENERAL_PATH_NAME, CURVE_NAMES, ORIENTATION_CURVE_NAMES, ROTATION_CURVE_NAME
 class MixedSegment:
     def __init__(self, x_start, x_end, interpolator):
         self.x = np.array([x_start, x_end], dtype=float)
@@ -164,7 +165,7 @@ def piecewise_slerp(x_points, value_components, tangentMode, interpolation_type=
     return segments
 
 
-def _parse_m_Curve(m_Curve_list, m_XCurves_name='m_PositionCurves'):
+def _parse_m_Curve(m_Curve_list, m_XCurves_name=CURVE_NAMES[0]):
     """Parse an m_Curve block and perform interpolation processing"""
     parameter_keys = list(m_Curve_list[0].keys())
     parameter_keys.remove("serializedVersion")
@@ -181,9 +182,9 @@ def _parse_m_Curve(m_Curve_list, m_XCurves_name='m_PositionCurves'):
     max_time = max(parameter_dict["time"])
     time_nodes = np.array(parameter_dict["time"])
     
-    if m_XCurves_name in ('m_RotationCurves', 'm_EulerCurves'):
+    if m_XCurves_name in ORIENTATION_CURVE_NAMES:
         # Rotation curves use SLERP interpolation
-        interpolation_type = 'quaternion' if m_XCurves_name == 'm_RotationCurves' else 'euler'
+        interpolation_type = 'quaternion' if m_XCurves_name == ROTATION_CURVE_NAME else 'euler'
         interpolation_list = piecewise_slerp(
             parameter_dict["time"],
             parameter_dict["value"],
@@ -229,7 +230,7 @@ def _parse_curve(m_XCurves, m_XCurves_name):
     for m_XCurve in m_XCurves:
         path = m_XCurve["path"]
         if not path:
-            path = 'general' if general_times == 0 else f"general({general_times})"
+            path = GENERAL_PATH_NAME if general_times == 0 else f"{GENERAL_PATH_NAME}({general_times})"
             general_times += 1
         else:
             path = str(path)
@@ -241,9 +242,9 @@ def _parse_curve(m_XCurves, m_XCurves_name):
 
 def parse(anim_dict):
     stop_time = anim_dict["m_AnimationClipSettings"]["m_StopTime"]
-    m_XCurveses = ("m_RotationCurves", "m_CompressedRotationCurves", "m_EulerCurves", "m_PositionCurves", "m_ScaleCurves", "m_FloatCurves")
+    
     paths = {}
-    for m_XCurves in m_XCurveses:
+    for m_XCurves in CURVE_NAMES:
         m_XCurves_list = anim_dict[m_XCurves]
         if m_XCurves_list:
             m_XCurves_dict, max_time = _parse_curve(m_XCurves_list, m_XCurves)

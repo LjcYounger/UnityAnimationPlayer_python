@@ -1,5 +1,6 @@
 import heapq
 from typing import Callable, List
+from .constants import EVENT_KEY_NAME
 
 class AnimationEvents:
     def __init__(self, raw_events):
@@ -20,7 +21,7 @@ class AnimationEvents:
         
         while self.events and condition(self.events[0][0]):
             event = heapq.heappop(self.events)[2][0]
-            triggered_events.append([event['functionName'], {k: v for k, v in event.items() if k != 'functionName'}])
+            triggered_events.append([event[EVENT_KEY_NAME], {k: v for k, v in event.items() if k != EVENT_KEY_NAME}])
         return triggered_events
     
     def reset_events(self) -> None:
