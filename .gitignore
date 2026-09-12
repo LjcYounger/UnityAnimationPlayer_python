@@ -10,6 +10,7 @@ site
 dist
 *.egg-info
 *.pyc
+*.nbc
 setup.py
 build/
 .eggs/
